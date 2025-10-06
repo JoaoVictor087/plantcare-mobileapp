@@ -32,6 +32,15 @@ export default function TabLayout() {
                                                        size={28} color={color}/>
                 }}
             />
+            <Tabs.Screen
+                name="cadastro"
+                options={{
+                    title: 'Cadastro',
+                    headerShown: false,
+                    tabBarIcon: ({color}) => <MaterialIcons name={"account-circle"}
+                                                            size={28} color={color}/>
+                }}
+            />
         </Tabs>
     );
 }
