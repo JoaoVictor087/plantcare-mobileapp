@@ -2,7 +2,7 @@ import React from "react";
 import {View, Text, StyleSheet} from "react-native";
 import COLORS from "../../constants/Colors";
 
-const Index = () => {
+const Dashboard = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.texto}>Dashboard</Text>
@@ -32,4 +32,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Index;
+export default Dashboard;

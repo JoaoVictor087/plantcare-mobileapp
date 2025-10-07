@@ -1,12 +1,11 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import header from "../../components/header";
 
 export default function TabLayout() {
     return (
         <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
             <Tabs.Screen
-                name="index"
+                name="dashboard"
                 options={{
                     title: 'Home',
                     headerShown: false,
@@ -30,15 +29,6 @@ export default function TabLayout() {
                     headerShown: false,
                     tabBarIcon: ({color}) => <MaterialIcons name={"account-circle"}
                                                        size={28} color={color}/>
-                }}
-            />
-            <Tabs.Screen
-                name="cadastro"
-                options={{
-                    title: 'Cadastro',
-                    headerShown: false,
-                    tabBarIcon: ({color}) => <MaterialIcons name={"account-circle"}
-                                                            size={28} color={color}/>
                 }}
             />
         </Tabs>

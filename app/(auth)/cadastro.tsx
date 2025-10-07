@@ -16,6 +16,7 @@ import {
 } from "../../utils/utils";
 import {KeyboardAvoidingView} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {router} from "expo-router";
 
 interface ErrosState {
     nome?: string;
@@ -34,19 +35,16 @@ const Cadastro = () => {
 
     const validarCampos = () => {
 
-        const novosErros : ErrosState = {}; // Objeto temporário para acumular os erros
+        const novosErros : ErrosState = {};
 
-        // Validação do Nome
         if (nome.trim() === "") {
             novosErros.nome = "O campo nome é obrigatório.";
         }
 
-        // Validação do Email
         if (!validarEmail(email)) {
             novosErros.email = "Digite um e-mail válido.";
         }
 
-        // Validações da Senha (usando as funções do utils)
         if (!validarTamanhoSenha(senha)) {
             novosErros.senha = "A senha deve ter no mínimo 8 caracteres.\n";
         }
@@ -57,14 +55,12 @@ const Cadastro = () => {
             novosErros.senha = (novosErros.senha || "") + "A senha deve conter um caractere especial.";
         }
 
-        // Validação da Confirmação de Senha
         if (senha !== confirmarSenha) {
             novosErros.confirmarSenha = "As senhas não coincidem.";
         }
 
-        setErros(novosErros); // Atualiza o estado de erros de uma vez só
+        setErros(novosErros);
 
-        // Retorna true se o objeto de erros estiver vazio
         return Object.keys(novosErros).length === 0;
     };
 
@@ -77,7 +73,7 @@ const Cadastro = () => {
                     senha,
                 };
 
-                await AsyncStorage.setItem("usuario", JSON.stringify(dadosUsuario));
+                await AsyncStorage.setItem(email, JSON.stringify(dadosUsuario));
 
                 Alert.alert("Sucesso", "Conta criada com sucesso!");
 
@@ -86,6 +82,7 @@ const Cadastro = () => {
                 setSenha("");
                 setConfirmarSenha("");
                 setErros({});
+                router.replace("/login");
             } catch (error) {
                 Alert.alert("Erro", "Não foi possível salvar os dados.");
                 console.error("Erro ao salvar dados:", error);

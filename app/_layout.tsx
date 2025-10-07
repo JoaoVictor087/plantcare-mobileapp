@@ -1,9 +1,8 @@
-import {Stack} from 'expo-router';
+import {Slot} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {useFonts} from 'expo-font';
 import {useEffect} from "react";
 import Header from "../components/header";
-
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,9 +21,7 @@ export default function RootLayout() {
         return null;
     }
     return (
-        <Stack screenOptions={{header: () => <Header/>}}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: true }} />
-        </Stack>
+        <><Header></Header><Slot/></>
     );
 }
 
