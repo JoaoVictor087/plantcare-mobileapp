@@ -19,7 +19,7 @@ export function validarCaracterEspecialSenha(senha: string): boolean {
         return false;
     }
     const listaDeCaracteresEspeciais: string[] = ['#', '$', '%', '&', '*', '(', ')', '-', '+', '=',
-        '{', '}', '[', ']', ':', ';', '"', '<', '>', ',', '.', '?', '/', '|'];
+        '{', '}', '[', ']', ':', ';', '"', '<', '>', ',', '.', '?', '/', '|', '@'];
 
     for (const caractere of listaDeCaracteresEspeciais) {
         if (senha.includes(caractere)) {
