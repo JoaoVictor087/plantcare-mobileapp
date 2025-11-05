@@ -17,6 +17,8 @@ import {
 import {KeyboardAvoidingView} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {router} from "expo-router";
+import {criarConta} from "../../api/apiMetodos";
+import {isAxiosError} from "axios";
 
 interface ErrosState {
     nome?: string;
@@ -72,8 +74,7 @@ const Cadastro = () => {
                     email,
                     senha,
                 };
-
-                await AsyncStorage.setItem(email, JSON.stringify(dadosUsuario));
+                await criarConta(dadosUsuario);
 
                 Alert.alert("Sucesso", "Conta criada com sucesso!");
 
@@ -84,13 +85,18 @@ const Cadastro = () => {
                 setErros({});
                 router.replace("/login");
             } catch (error) {
-                Alert.alert("Erro", "Não foi possível salvar os dados.");
+                let mensagemErro = "Não foi possível salvar os dados. Tente novamente.";
+
+                if (isAxiosError(error) && error.response) {
+                    mensagemErro = error.response.data.nomeErro || mensagemErro;
+                }
+                Alert.alert("Erro", mensagemErro);
                 console.error("Erro ao salvar dados:", error);
             }
         } else {
             Alert.alert("Erro", "Confira os dados e tente novamente.");
         }
-    };
+    }
 
     return (
         <KeyboardAvoidingView style={{flex: 1}} behavior="padding">

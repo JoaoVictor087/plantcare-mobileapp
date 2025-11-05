@@ -3,46 +3,31 @@ import {View, Text, StyleSheet, TextInput, TouchableOpacity, Alert} from 'react-
 import COLORS from "../../constants/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from 'expo-router';
-
-interface StorageInterface {
-    nome: string;
-    email: string;
-    senha: string;
-}
+import {logarConta} from "../../api/apiMetodos";
+import {isAxiosError} from "axios";
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const [logado, setLogado] = useState(false);
 
-    useEffect(() => {
-        if(logado){
-            router.replace("/dashboard")
-        }
-    }, [logado])
-
-    const getData = async () => {
+    const handleLogin = async () =>{
         try {
-            const jsonValue = await AsyncStorage.getItem(email);
-            return jsonValue != null ? JSON.parse(jsonValue) : null;
-        } catch (e) {
-            console.log(e);
-        }
-    };
+            const dadosLogin = {email, senha};
+            const response = await logarConta(dadosLogin);
+            const token = response.token;
+            await AsyncStorage.setItem('token', token);
 
-    async function verificarLogin() {
-        const loginUsuario: StorageInterface = await getData();
-        if(!loginUsuario){
-            Alert.alert("Erro", "Usuário não encontrado");
-            return null;
-        }
+            router.replace("/dashboard")
+        }catch (error){
+            let mensagemErro = "Não foi possível fazer o login.";
 
-        if (loginUsuario.senha === senha && loginUsuario.email === email){
-            setLogado(true);
-        }else{
-            Alert.alert("Erro", "Email e/ou senha inválidos")
-        }
+            if (isAxiosError(error) && error.response) {
+                mensagemErro = error.response.data.nomeErro || "Usuário ou senha inválidos.";
+            }
 
+            Alert.alert("Erro", mensagemErro);
+            console.error("Erro no login:", error);
+        }
     }
 
     return (
@@ -64,7 +49,7 @@ const Login = () => {
                            placeholder={"Digite a sua senha"}>
                 </TextInput>
             </View>
-            <TouchableOpacity onPress={verificarLogin}>
+            <TouchableOpacity onPress={handleLogin}>
                 <View style={styles.botao}>
                     <Text style={styles.textoBotao}>Fazer Login</Text>
                 </View>
