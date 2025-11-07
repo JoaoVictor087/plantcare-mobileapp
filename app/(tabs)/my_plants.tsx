@@ -1,25 +1,66 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, {useEffect, useState} from "react";
+import {View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList} from 'react-native';
 import COLORS from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import {Planta} from "../../types/Planta";
+import {getUsuarioId} from "../../utils/AuthStorageUtils";
+import {router} from "expo-router";
+import {buscarPlantasPorUsuario} from "../../api/apiMetodos";
+import ContainerPlanta from "../../components/ContainerPlanta";
 
 const MyPlants = () => {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.texto}>Minhas Plantas</Text>
-      <View style={styles.infoArea}>
-        <View style={styles.infoTexto}>
-        <Text style={styles.titulo}> Planta 1</Text>
-        <Text style={styles.titulo}> Umidade: 40%</Text>
-        <Text style={styles.titulo}> Temperatura: 24 C°</Text>
-        <Text style={styles.titulo}> Status: Saudável</Text>
+  const [plantas, setPlantas] = useState<Planta[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const carregarPlantas = async () => {
+      try {
+          setLoading(true);
+          const usuarioId = await getUsuarioId();
+
+          if(!usuarioId){
+              Alert.alert("Erro", "Usuário não encontrado. Faça login novamente")
+              router.replace("/login");
+              return;
+          }
+
+          const dados = await buscarPlantasPorUsuario();
+          setPlantas(dados)
+      }catch (error){
+          Alert.alert('Erro', "não foi possível carregar as suas plantas")
+      }finally {
+          setLoading(false);
+      }
+  }
+
+  useEffect(()=> {
+      carregarPlantas();
+  }, [])
+
+    const componenteVazio =  () => (
+        <View style={styles.containerVazio}>
+            <Text style={styles.containerVazioTexto}> Você ainda não cadastrou nenhuma planta</Text>
         </View>
-        <Image style={styles.image} source={require("../../assets/planta.jpg")} resizeMode="contain"></Image>
-      </View>
-      <TouchableOpacity>
-      <Ionicons name="add-circle" size={64} style={styles.add} />
-    </TouchableOpacity>
-    </View>
+    )
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.texto}>Minhas Plantas</Text>
+            {loading ? (
+                <ActivityIndicator size="large" color={COLORS.verdeMedio} style={styles.loader} />
+            ) : (
+                <FlatList
+                    data={plantas}
+                    keyExtractor={item => item.id.toString()}
+                    renderItem={({ item }) => (
+                        <ContainerPlanta planta={item} />
+                    )}
+                    ListEmptyComponent={componenteVazio}
+                />
+            )}
+            <TouchableOpacity>
+                <Ionicons name="add-circle" size={64} style={styles.add} />
+            </TouchableOpacity>
+        </View>
   );
 };
 
@@ -36,36 +77,26 @@ const styles = StyleSheet.create({
         color: COLORS.verdeEscuro,
         marginTop: 20,
     },
-    titulo: {
-      fontSize: 18,
-      color: COLORS.verdeMedio,
-      marginTop: 30
-      
+    containerVazio: {
+        marginTop: 50,
+        alignItems: 'center'
     },
-    infoArea: {
-        height: 300,
-        width: 350,
-        backgroundColor: "#fff",
-        borderRadius: 10,
-        flexDirection: "row"
-    },
-    infoTexto: {
-        alignContent: "center",
+    containerVazioTexto: {
+        fontSize: 16,
+        color: COLORS.verdeMedio,
     },
     add: {
-      marginTop: 80,
-      color: COLORS.verdeEscuro
+        position: 'absolute',
+        bottom: 30,
+        right: -30,
+        color: COLORS.verdeEscuro,
+        shadowColor: "#000",
     },
-    image: {
-      height: 300,
-      width: 170,
-      borderRadius: 10,
-      marginLeft: 18,
+    loader: {
+        marginTop: 50,
     },
 
     }      
   );
-
-    
 
 export default MyPlants;
