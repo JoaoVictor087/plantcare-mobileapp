@@ -4,6 +4,11 @@ import {AuthResponse} from "../types/LoginResponse";
 import apiClient from "./apiClient";
 import {Planta} from "../types/Planta";
 
+export interface NovaPlantaDTO {
+    nome: string;
+    especie: string;
+}
+
 interface PlantaDTO {
     id: number;
     nome: string;
@@ -76,5 +81,15 @@ export const buscarPlantasPorUsuario = async (): Promise<PlantaDTO[]> => {
         throw error;
     }
 }
+
+export const adicionarPlanta = async (dadosPlanta: NovaPlantaDTO): Promise<Planta> => {
+    try {
+        const response = await apiClient.post<Planta>('/plantas', dadosPlanta);
+        return response.data;
+    }catch (error){
+        console.error('Erro ao adicionar planta: ', error)
+        throw error;
+    }
+};
 
 
