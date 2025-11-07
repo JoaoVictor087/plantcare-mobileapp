@@ -1,3 +1,5 @@
-export type LoginResponse = {
-    token: string
+export interface AuthResponse {
+    accessToken: string,
+    refreshToken: string,
+    userId: number
 }

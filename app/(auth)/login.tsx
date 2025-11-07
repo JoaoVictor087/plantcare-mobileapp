@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from 'expo-router';
 import {logarConta} from "../../api/apiMetodos";
 import {isAxiosError} from "axios";
+import {salvarAuthData} from "../../utils/AuthStorageUtils";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -14,8 +15,7 @@ const Login = () => {
         try {
             const dadosLogin = {email, senha};
             const response = await logarConta(dadosLogin);
-            const token = response.token;
-            await AsyncStorage.setItem('token', token);
+            await salvarAuthData(response);
 
             router.replace("/dashboard")
         }catch (error){
@@ -44,6 +44,7 @@ const Login = () => {
             <View style={styles.inputContainer}>
                 <TextInput style={styles.input}
                            onChangeText={setSenha}
+                           secureTextEntry={true}
                            value={senha}
                            placeholderTextColor={COLORS.verdeMedio}
                            placeholder={"Digite a sua senha"}>

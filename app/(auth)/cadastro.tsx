@@ -13,9 +13,8 @@ import {
     validarEmail,
     validarNumeroSenha,
     validarTamanhoSenha,
-} from "../../utils/utils";
+} from "../../utils/LoginUtils";
 import {KeyboardAvoidingView} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {router} from "expo-router";
 import {criarConta} from "../../api/apiMetodos";
 import {isAxiosError} from "axios";
