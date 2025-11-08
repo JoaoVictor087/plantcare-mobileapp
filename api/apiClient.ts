@@ -8,7 +8,7 @@ interface AuthResponse {
 }
 
 const apiClient = axios.create({
-    baseURL: 'http://10.0.2.2:8080/api',
+    baseURL: 'http://40.82.162.17:8080/api',
 });
 
 apiClient.interceptors.request.use(
