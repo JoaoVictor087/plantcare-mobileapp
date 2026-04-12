@@ -20,6 +20,8 @@ Muitas pessoas esquecem de regar, podar ou observar sinais de estresse nas plant
 
 O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe um **dashboard** com dados vindos do servidor (sem mocks na interface) e oferece uma área de **cuidados** cujo **CRUD** é feito contra uma **API REST publicada pelo Oracle APEX**, onde ficam regras e persistência desse fluxo. O app usa **Expo Router** (rotas explícitas), **TanStack Query** para leitura/atualização de cache após mutações, **tema claro/escuro** persistido e **login** com tokens armazenados de forma segura (AsyncStorage).
 
+**Acesso administrador (demonstração):** na tela de login, use usuário `admin` e senha `admin` para uma sessão local (persistida no dispositivo, sem JWT). Útil para testar navegação e UI quando a API não está disponível; o perfil comum continua usando e-mail/senha reais no backend.
+
 ## Tecnologias
 
 - React Native / Expo (~54)
@@ -33,7 +35,7 @@ O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe 
 ## Telas (rotas) principais
 
 1. `app/index` — checagem de sessão e redirecionamento
-2. `app/(auth)/login` — autenticação
+2. `app/(auth)/login` — autenticação (usuário comum via API ou admin/admin local)
 3. `app/(auth)/cadastro` — criação de conta
 4. `app/(tabs)/dashboard` — resumo com dados da API de plantas
 5. `app/(tabs)/my_plants` — lista e criação de plantas

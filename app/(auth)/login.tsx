@@ -12,6 +12,8 @@ import { router } from 'expo-router';
 import { isAxiosError } from 'axios';
 import { useTheme } from '../../context/ThemeContext';
 import { useLoginMutation } from '../../hooks/useAuthMutations';
+import { credenciaisAdminValidas } from '../../utils/adminCredentials';
+import { limparAuthData, salvarSessaoAdmin } from '../../utils/AuthStorageUtils';
 
 const Login = () => {
   const { colors } = useTheme();
@@ -19,7 +21,14 @@ const Login = () => {
   const [senha, setSenha] = useState('');
   const loginMutation = useLoginMutation();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (credenciaisAdminValidas(email, senha)) {
+      await limparAuthData();
+      await salvarSessaoAdmin();
+      router.replace('/(tabs)/dashboard');
+      return;
+    }
+
     loginMutation.mutate(
       { email, senha },
       {
@@ -56,9 +65,10 @@ const Login = () => {
           onChangeText={setEmail}
           value={email}
           placeholderTextColor={colors.textSecondary}
-          placeholder="Digite o seu email"
+          placeholder="E-mail ou usuário (admin)"
           autoCapitalize="none"
-          keyboardType="email-address"
+          autoCorrect={false}
+          keyboardType="default"
         />
       </View>
       <View style={styles.inputContainer}>
@@ -92,6 +102,10 @@ const Login = () => {
           )}
         </View>
       </TouchableOpacity>
+      <Text style={[styles.dicaAdmin, { color: colors.textSecondary }]}>
+        Administrador: usuário e senha{' '}
+        <Text style={{ fontWeight: '700' }}>admin</Text>
+      </Text>
       <TouchableOpacity onPress={() => router.replace('/(auth)/cadastro')}>
         <Text style={[styles.textoCriarConta, { color: colors.primary }]}>
           Não tem conta? Cadastre-se agora
@@ -137,6 +151,13 @@ const styles = StyleSheet.create({
   },
   textoCriarConta: {
     marginTop: 10,
+  },
+  dicaAdmin: {
+    marginTop: 20,
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    lineHeight: 18,
   },
 });
 

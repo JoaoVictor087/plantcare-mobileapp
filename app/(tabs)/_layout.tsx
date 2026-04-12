@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import Header from '../../components/header';
 import { useTheme } from '../../context/ThemeContext';
-import { getAccessToken } from '../../utils/AuthStorageUtils';
+import { temSessaoAtiva } from '../../utils/AuthStorageUtils';
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -13,9 +13,9 @@ export default function TabLayout() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const token = await getAccessToken();
+      const logado = await temSessaoAtiva();
       if (!alive) return;
-      if (!token) {
+      if (!logado) {
         router.replace('/(auth)/login');
       }
     })();

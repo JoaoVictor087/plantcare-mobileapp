@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +11,17 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
-import { limparAuthData } from '../../utils/AuthStorageUtils';
+import { isSessaoAdmin, limparAuthData } from '../../utils/AuthStorageUtils';
 
 const Options = () => {
   const { colors, isDark, toggleMode } = useTheme();
+  const [admin, setAdmin] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      isSessaoAdmin().then(setAdmin);
+    }, [])
+  );
 
   const logout = () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair da sua conta?', [
@@ -40,6 +48,16 @@ const Options = () => {
         size={90}
         style={[styles.perfil, { color: colors.primary }]}
       />
+      {admin ? (
+        <View
+          style={[
+            styles.adminTag,
+            { backgroundColor: colors.primary, borderColor: colors.border },
+          ]}
+        >
+          <Text style={styles.adminTagTexto}>Sessão administrador (local)</Text>
+        </View>
+      ) : null}
       <Text style={[styles.nomeIntegrante, { color: colors.textSecondary }]}>
         Juan Pablo Rebelo Coelho · RM 560445
       </Text>
@@ -82,6 +100,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 24,
+  },
+  adminTag: {
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  adminTagTexto: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
   },
   perfil: {
     marginTop: 20,

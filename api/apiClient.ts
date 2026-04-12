@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../constants/config';
-import { getAccessToken, getRefreshToken, limparAuthData, salvarAuthData } from '../utils/AuthStorageUtils';
+import {
+  getAccessToken,
+  getRefreshToken,
+  isSessaoAdmin,
+  limparAuthData,
+  salvarAuthData,
+} from '../utils/AuthStorageUtils';
 
 interface AuthResponse {
     accessToken: string;
@@ -41,9 +47,14 @@ apiClient.interceptors.response.use(
             try {
                 const refreshToken = await getRefreshToken();
                 if (!refreshToken) {
-                    throw new Error('Sem refresh token');
+                    if (await isSessaoAdmin()) {
+                        return Promise.reject(error);
+                    }
+                    await limparAuthData();
+                    const { router } = await import('expo-router');
+                    router.replace('/(auth)/login');
+                    return Promise.reject(error);
                 }
-
 
                 const { data } = await apiClient.post<AuthResponse>('/auth/refresh', {
                     refreshToken: refreshToken,
@@ -56,7 +67,10 @@ apiClient.interceptors.response.use(
                 return apiClient(originalRequest);
 
             } catch (refreshError) {
-                console.error('Refresh token falhou. Fazendo logout.', refreshError);
+                console.error('Refresh token falhou.', refreshError);
+                if (await isSessaoAdmin()) {
+                    return Promise.reject(refreshError);
+                }
                 await limparAuthData();
                 const { router } = await import('expo-router');
                 router.replace('/(auth)/login');

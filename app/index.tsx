@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getAccessToken } from '../utils/AuthStorageUtils';
+import { temSessaoAtiva } from '../utils/AuthStorageUtils';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Index() {
@@ -13,9 +13,9 @@ export default function Index() {
 
     let alive = true;
     (async () => {
-      const token = await getAccessToken();
+      const logado = await temSessaoAtiva();
       if (!alive) return;
-      if (token) {
+      if (logado) {
         router.replace('/(tabs)/dashboard');
       } else {
         router.replace('/(auth)/login');
