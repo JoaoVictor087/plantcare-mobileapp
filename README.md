@@ -82,7 +82,7 @@ O valor padrão no código aponta para o host de desenvolvimento do grupo; **o m
 
 **Substitua o link abaixo pelo vídeo publicado no YouTube** (máx. 5 minutos, com narração e app em execução real):
 
-- [Vídeo de apresentação — PlantCare Sprint 3](https://www.youtube.com/watch?v=SUBSTITUIR_PELO_ID_DO_VIDEO)
+- [Vídeo de apresentação — PlantCare Sprint 3](https://youtu.be/KRxiz1VTA80)
 
 No vídeo deve aparecer: navegação entre telas, login, chamadas à API, uso da funcionalidade APEX e comportamento real do aplicativo.
 
