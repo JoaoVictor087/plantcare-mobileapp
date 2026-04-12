@@ -22,7 +22,7 @@ O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe 
 
 **Acesso administrador (demonstração):** na tela de login, use usuário `admin` e senha `admin` para uma sessão local (persistida no dispositivo, sem JWT). Útil para testar navegação e UI quando a API não está disponível; o perfil comum continua usando e-mail/senha reais no backend.
 
-**Sem internet / API fora do ar:** após um carregamento bem-sucedido, listas de plantas e de cuidados APEX são salvas em cache no aparelho (`AsyncStorage`). Em falhas de rede ou erro 5xx, o app tenta exibir essa cópia e mostra avisos na interface. **Criar, editar e excluir** exigem conexão: o app bloqueia o envio e informa o usuário.
+**Sem internet / API fora do ar:** as listas **sempre** deixam de “carregar para sempre”: após um tempo limite ou qualquer erro, o app mostra o que estiver salvo no aparelho (pode ser lista vazia). **Criar, editar e excluir** plantas e cuidados funcionam **no aparelho** com IDs negativos (dados locais em `AsyncStorage`); quando a API voltar, os registros do servidor são mesclados com esses itens locais.
 
 ## Tecnologias
 
