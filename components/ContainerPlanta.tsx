@@ -64,10 +64,11 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
 };
 
 const styles = StyleSheet.create({
+  /** Sem flex:1 — dentro de FlatList, flex:1 quebra o scroll (itens “lutam” pela altura). */
   container: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: layout.spaceMd,
   },
   nome: {
     fontSize: 20,

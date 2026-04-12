@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
   FlatList,
   Modal,
   TextInput,
+  type ListRenderItem,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ContainerPlanta from '../../components/ContainerPlanta';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ThemedCard } from '../../components/ThemedCard';
@@ -21,10 +23,13 @@ import {
   useCriarPlantaMutation,
   usePlantasQuery,
 } from '../../hooks/usePlantas';
+import type { Planta } from '../../types/Planta';
 import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
 const MyPlants = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const listRef = useRef<FlatList>(null);
   const { data: plantas = [], isLoading, isError, error } = usePlantasQuery();
   const criarPlanta = useCriarPlantaMutation();
 
@@ -45,6 +50,9 @@ const MyPlants = () => {
           setModalVisivel(false);
           setNovaPlantaNome('');
           setNovaPlantaEspecie('');
+          setTimeout(() => {
+            listRef.current?.scrollToEnd({ animated: true });
+          }, 280);
         },
         onError: (err) => {
           Alert.alert('Não enviado', mensagemErroMutacao(err));
@@ -52,6 +60,24 @@ const MyPlants = () => {
       }
     );
   };
+
+  const paddingListaFundo =
+    insets.bottom + 110 + 72;
+
+  const renderPlanta: ListRenderItem<Planta> = useCallback(
+    ({ item }) => (
+      <ContainerPlanta
+        planta={item}
+        onPress={() =>
+          router.push({
+            pathname: '/plant/[id]',
+            params: { id: String(item.id) },
+          })
+        }
+      />
+    ),
+    []
+  );
 
   const componenteVazio = () => (
     <ThemedCard style={styles.vazioCard}>
@@ -81,21 +107,17 @@ const MyPlants = () => {
         </ThemedCard>
       ) : (
         <FlatList
+          ref={listRef}
           data={plantas}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <ContainerPlanta
-              planta={item}
-              onPress={() =>
-                router.push({
-                  pathname: '/plant/[id]',
-                  params: { id: String(item.id) },
-                })
-              }
-            />
-          )}
+          style={styles.list}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: paddingListaFundo },
+          ]}
+          renderItem={renderPlanta}
           ListEmptyComponent={componenteVazio}
+          showsVerticalScrollIndicator
         />
       )}
       <TouchableOpacity
@@ -168,17 +190,23 @@ const MyPlants = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
   },
   textoTitulo: {
+    alignSelf: 'center',
     marginBottom: 8,
     fontSize: 28,
     fontFamily: 'Inter',
     fontWeight: '800',
     marginTop: layout.spaceMd,
   },
+  list: {
+    flex: 1,
+    width: '100%',
+  },
   listContent: {
-    paddingBottom: 100,
+    flexGrow: 1,
+    paddingHorizontal: layout.spaceMd,
+    paddingTop: 4,
     alignItems: 'center',
   },
   loader: {
