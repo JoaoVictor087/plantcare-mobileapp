@@ -1,68 +1,127 @@
-import {Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Alert, Pressable, Button} from 'react-native';
-import COLORS from '../../constants/Colors';
-import {limparAuthData} from "../../utils/AuthStorageUtils";
-import {router} from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  Pressable,
+  Switch,
+} from 'react-native';
+import { router } from 'expo-router';
+import { useTheme } from '../../context/ThemeContext';
+import { limparAuthData } from '../../utils/AuthStorageUtils';
 
 const Options = () => {
-    const logout = () => {
-        Alert.alert(
-            "Sair",
-            "Tem certeza que deseja sair da sua conta?",
-            [
-                {text: "Cancelar", style: "cancel"},
-                {
-                    text: "Sair",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await limparAuthData();
-                            router.replace('/login');
-                        } catch (error) {
-                            Alert.alert('Erro', 'Não foi possível fazer logout.');
-                        }
-                    }
-                }
-            ]
-        );
-    };
+  const { colors, isDark, toggleMode } = useTheme();
 
-    return (
-        <View style={styles.container}>
-            <Ionicons name="person-circle-outline" size={90} style={styles.perfil}/>
-            <Pressable>
-                <Text style={styles.editarPerfil}>Editar Perfil</Text>
-            </Pressable>
-            <View>
-                <Text style={styles.tituloTexto}>Conta</Text>
-            </View>
-            <Button title={"Logout"}
-                    color={"red"} onPress={logout}/>
+  const logout = () => {
+    Alert.alert('Sair', 'Tem certeza que deseja sair da sua conta?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sair',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await limparAuthData();
+            router.replace('/(auth)/login');
+          } catch {
+            Alert.alert('Erro', 'Não foi possível fazer logout.');
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Ionicons
+        name="person-circle-outline"
+        size={90}
+        style={[styles.perfil, { color: colors.primary }]}
+      />
+      <Text style={[styles.nomeIntegrante, { color: colors.textSecondary }]}>
+        Juan Pablo Rebelo Coelho · RM 560445
+      </Text>
+      <Pressable>
+        <Text style={[styles.editarPerfil, { color: colors.text }]}>Editar Perfil</Text>
+      </Pressable>
+      <View style={styles.secao}>
+        <Text style={[styles.tituloTexto, { color: colors.text }]}>Aparência</Text>
+        <View
+          style={[
+            styles.row,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Text style={{ color: colors.text }}>Modo escuro</Text>
+          <Switch value={isDark} onValueChange={toggleMode} />
         </View>
-    );
+      </View>
+      <View style={styles.secao}>
+        <Text style={[styles.tituloTexto, { color: colors.text }]}>Conta</Text>
+        <Pressable
+          onPress={logout}
+          style={[
+            styles.botaoSair,
+            { backgroundColor: '#c62828', borderColor: colors.border },
+          ]}
+        >
+          <Text style={styles.textoSair}>Logout</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.begeFundo,
-        alignItems: "center"
-
-    },
-    perfil: {
-        color: COLORS.verdeMedio,
-        marginTop: 20
-    },
-    editarPerfil: {
-        color: 'black'
-    },
-    tituloTexto: {
-        fontSize: 30,
-        color: COLORS.verdeEscuro,
-        marginBottom: 10
-        //texto na esquerda
-    },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  perfil: {
+    marginTop: 20,
+  },
+  nomeIntegrante: {
+    marginTop: 8,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  editarPerfil: {
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  secao: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  tituloTexto: {
+    fontSize: 22,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  botaoSair: {
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  textoSair: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
 export default Options;
