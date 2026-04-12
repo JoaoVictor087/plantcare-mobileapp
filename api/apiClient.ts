@@ -1,5 +1,6 @@
 import axios from 'axios';
-import {getAccessToken, getRefreshToken, limparAuthData, salvarAuthData} from "../utils/AuthStorageUtils";
+import { API_BASE_URL } from '../constants/config';
+import { getAccessToken, getRefreshToken, limparAuthData, salvarAuthData } from '../utils/AuthStorageUtils';
 
 interface AuthResponse {
     accessToken: string;
@@ -8,7 +9,7 @@ interface AuthResponse {
 }
 
 const apiClient = axios.create({
-    baseURL: 'http://40.82.162.17:8080/api',
+  baseURL: API_BASE_URL.replace(/\/$/, ''),
 });
 
 apiClient.interceptors.request.use(
@@ -57,8 +58,8 @@ apiClient.interceptors.response.use(
             } catch (refreshError) {
                 console.error('Refresh token falhou. Fazendo logout.', refreshError);
                 await limparAuthData();
-                const { router } =  require('expo-router')
-                router.replace('/login')
+                const { router } = await import('expo-router');
+                router.replace('/(auth)/login');
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

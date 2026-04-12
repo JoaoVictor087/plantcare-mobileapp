@@ -1,95 +1,10 @@
-import {Cadastro} from "../types/Cadastro";
-import {Login} from "../types/Login";
-import {AuthResponse} from "../types/LoginResponse";
-import apiClient from "./apiClient";
-import {Planta} from "../types/Planta";
-
-export interface NovaPlantaDTO {
-    nome: string;
-    especie: string;
-}
-
-interface PlantaDTO {
-    id: number;
-    nome: string;
-    especie: string;
-    dataCadastro: Date;
-    dataAtualizacao?: Date;
-    imgLink?: string;
-    umidade?: number;
-    temperatura?: number;
-    status?: string;
-}
-
-interface HateoasResponse {
-    _embedded: {
-        plantaResponseDTOList: PlantaDTO[];
-    };
-    _links: any;
-}
-
-export async function criarConta(conta: Cadastro): Promise<Cadastro> {
-    const response = await
-        apiClient.post("/auth/criarConta",
-            {
-                nome: conta.nome,
-                email: conta.email,
-                senha: conta.senha,
-            });
-    return response.data;
-}
-
-export async function logarConta(conta: Login): Promise<AuthResponse> {
-    try {
-        const response = await
-            apiClient.post<AuthResponse>("/auth/login", conta)
-        return response.data;
-    } catch (error) {
-        console.error('Erro no login:', error);
-        throw error;
-    }
-}
-
-export const buscarPlantasPorUsuario = async (): Promise<PlantaDTO[]> => {
-    try {
-        const response = await apiClient.get<HateoasResponse>('/plantas');
-
-        const listaDePlantasDTO = response.data?._embedded?.plantaResponseDTOList;
-
-        if (!listaDePlantasDTO) {
-            return [];
-        }
-
-        const plantasMapeadas: Planta[] = listaDePlantasDTO.map(dto => {
-            return {
-                id: dto.id,
-                nome: dto.nome,
-                especie: dto.especie,
-                dataCadastro: dto.dataCadastro,
-                dataAtualizacao: dto.dataAtualizacao,
-                umidade: dto.umidade ?? 0,
-                temperatura: dto.temperatura ?? 0,
-                status: dto.status ?? 'N/A',
-                imgLink: dto.imgLink
-            };
-        });
-
-        return plantasMapeadas;
-
-    } catch (error) {
-        console.error('Erro ao buscar plantas:', error);
-        throw error;
-    }
-}
-
-export const adicionarPlanta = async (dadosPlanta: NovaPlantaDTO): Promise<Planta> => {
-    try {
-        const response = await apiClient.post<Planta>('/plantas', dadosPlanta);
-        return response.data;
-    }catch (error){
-        console.error('Erro ao adicionar planta: ', error)
-        throw error;
-    }
-};
-
-
+/**
+ * Reexportações da camada de serviços (compatibilidade).
+ * Prefira importar de `services/` e consumir dados via hooks em `hooks/`.
+ */
+export { criarConta, logarConta } from '../services/authService';
+export type { NovaPlantaPayload as NovaPlantaDTO } from '../services/plantaService';
+export {
+  listarPlantas as buscarPlantasPorUsuario,
+  criarPlanta as adicionarPlanta,
+} from '../services/plantaService';
