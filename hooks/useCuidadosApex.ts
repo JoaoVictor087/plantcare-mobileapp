@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import * as apexCuidadosService from '../services/apexCuidadosService';
+import type { CuidadoApex } from '../types/CuidadoApex';
 import {
   assertInternetDisponivel,
   isRedeOuServidorIndisponivel,
@@ -19,32 +19,36 @@ type CuidadoPayload = {
 
 export type CuidadosDataSource = 'live' | 'cache' | null;
 
-export function useCuidadosApexQuery() {
-  const [dataSource, setDataSource] = useState<CuidadosDataSource>(null);
+export type CuidadosQueryPayload = {
+  rows: CuidadoApex[];
+  source: 'live' | 'cache';
+};
 
+export function useCuidadosApexQuery() {
   const query = useQuery({
     queryKey: cuidadoApexKeys.all,
-    queryFn: async () => {
+    queryFn: async (): Promise<CuidadosQueryPayload> => {
       try {
         const list = await apexCuidadosService.listarCuidadosApex();
         await salvarCuidadosCache(list);
-        setDataSource('live');
-        return list;
+        return { rows: list, source: 'live' };
       } catch (e) {
         if (isRedeOuServidorIndisponivel(e)) {
           const cached = await carregarCuidadosCache();
           if (cached.length > 0) {
-            setDataSource('cache');
-            return cached;
+            return { rows: cached, source: 'cache' };
           }
         }
-        setDataSource(null);
         throw e;
       }
     },
   });
 
-  return { ...query, dataSource };
+  return {
+    ...query,
+    data: query.data?.rows,
+    dataSource: query.data?.source ?? null,
+  };
 }
 
 export function useCriarCuidadoApexMutation() {

@@ -12,3 +12,8 @@ export const API_BASE_URL =
 export const APEX_BASE_URL =
   process.env.EXPO_PUBLIC_APEX_BASE_URL ??
   'http://40.82.162.17:8080/api/apex/cuidados';
+
+/** Evita requisições penduradas indefinidamente (tela só “carregando”). */
+export const HTTP_TIMEOUT_MS = Number(
+  process.env.EXPO_PUBLIC_HTTP_TIMEOUT_MS ?? 22000
+);

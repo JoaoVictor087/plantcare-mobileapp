@@ -1,5 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { NovaPlantaPayload } from '../services/plantaService';
 import * as plantaService from '../services/plantaService';
 import type { Planta } from '../types/Planta';
@@ -15,32 +19,47 @@ import { plantKeys } from './queryKeys';
 
 export type PlantasDataSource = 'live' | 'cache' | null;
 
-export function usePlantasQuery() {
-  const [dataSource, setDataSource] = useState<PlantasDataSource>(null);
+/** Formato interno do cache do React Query (evita setState dentro do queryFn). */
+export type PlantasQueryPayload = {
+  rows: Planta[];
+  source: 'live' | 'cache';
+};
 
+function readRowsFromCache(client: QueryClient, id: number): Planta | undefined {
+  const raw = client.getQueryData<PlantasQueryPayload | Planta[]>(plantKeys.all);
+  if (!raw) return undefined;
+  const rows = Array.isArray(raw) ? raw : raw.rows;
+  return rows.find((p) => p.id === id);
+}
+
+export function usePlantasQuery() {
   const query = useQuery({
     queryKey: plantKeys.all,
-    queryFn: async () => {
+    queryFn: async (): Promise<PlantasQueryPayload> => {
       try {
         const list = await plantaService.listarPlantas();
         await salvarPlantasCache(list);
-        setDataSource('live');
-        return list;
+        return { rows: list, source: 'live' };
       } catch (e) {
         if (isRedeOuServidorIndisponivel(e)) {
           const cached = await carregarPlantasCache();
           if (cached.length > 0) {
-            setDataSource('cache');
-            return cached;
+            return { rows: cached, source: 'cache' };
           }
         }
-        setDataSource(null);
         throw e;
       }
     },
   });
 
-  return { ...query, dataSource };
+  const dataSource: PlantasDataSource = query.data?.source ?? null;
+  const rows = query.data?.rows;
+
+  return {
+    ...query,
+    data: rows,
+    dataSource,
+  };
 }
 
 export function usePlantaQuery(id: number) {
@@ -48,8 +67,7 @@ export function usePlantaQuery(id: number) {
   return useQuery({
     queryKey: plantKeys.detail(id),
     queryFn: async () => {
-      const todas = queryClient.getQueryData<Planta[]>(plantKeys.all);
-      const hit = todas?.find((p) => p.id === id);
+      const hit = readRowsFromCache(queryClient, id);
       if (hit) return hit;
       return plantaService.buscarPlantaPorId(id);
     },

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../constants/config';
+import { API_BASE_URL, HTTP_TIMEOUT_MS } from '../constants/config';
 import {
   getAccessToken,
   getRefreshToken,
@@ -16,6 +16,7 @@ interface AuthResponse {
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL.replace(/\/$/, ''),
+  timeout: HTTP_TIMEOUT_MS,
 });
 
 apiClient.interceptors.request.use(
@@ -39,47 +40,71 @@ apiClient.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
+        const config = error.config;
+        if (!config) {
+            return Promise.reject(error);
+        }
 
-        if (error.response?.status === 401 && !isRefreshing) {
-            isRefreshing = true;
+        const path = String(config.url ?? '');
+        if (path.includes('/auth/refresh')) {
+            return Promise.reject(error);
+        }
 
-            try {
-                const refreshToken = await getRefreshToken();
-                if (!refreshToken) {
-                    if (await isSessaoAdmin()) {
-                        return Promise.reject(error);
-                    }
-                    await limparAuthData();
-                    const { router } = await import('expo-router');
-                    router.replace('/(auth)/login');
-                    return Promise.reject(error);
-                }
+        if (error.response?.status !== 401) {
+            return Promise.reject(error);
+        }
 
-                const { data } = await apiClient.post<AuthResponse>('/auth/refresh', {
-                    refreshToken: refreshToken,
-                });
+        if ((config as { _retry?: boolean })._retry) {
+            return Promise.reject(error);
+        }
+        (config as { _retry?: boolean })._retry = true;
 
-                await salvarAuthData(data);
+        if (isRefreshing) {
+            return Promise.reject(error);
+        }
+        isRefreshing = true;
 
-                originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
-
-                return apiClient(originalRequest);
-
-            } catch (refreshError) {
-                console.error('Refresh token falhou.', refreshError);
+        try {
+            const refreshToken = await getRefreshToken();
+            if (!refreshToken) {
                 if (await isSessaoAdmin()) {
-                    return Promise.reject(refreshError);
+                    return Promise.reject(error);
                 }
                 await limparAuthData();
                 const { router } = await import('expo-router');
                 router.replace('/(auth)/login');
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
+                return Promise.reject(error);
             }
+
+            const { data } = await apiClient.post<AuthResponse>('/auth/refresh', {
+                refreshToken,
+            });
+
+            await salvarAuthData(data);
+
+            const h = config.headers;
+            if (h && typeof (h as { set?: (k: string, v: string) => void }).set === 'function') {
+                (h as { set: (k: string, v: string) => void }).set(
+                    'Authorization',
+                    `Bearer ${data.accessToken}`
+                );
+            } else if (h && typeof h === 'object') {
+                (h as Record<string, string>).Authorization = `Bearer ${data.accessToken}`;
+            }
+
+            return apiClient(config);
+        } catch (refreshError) {
+            console.error('Refresh token falhou.', refreshError);
+            if (await isSessaoAdmin()) {
+                return Promise.reject(refreshError);
+            }
+            await limparAuthData();
+            const { router } = await import('expo-router');
+            router.replace('/(auth)/login');
+            return Promise.reject(refreshError);
+        } finally {
+            isRefreshing = false;
         }
-        return Promise.reject(error);
     }
 );
 
