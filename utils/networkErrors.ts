@@ -1,30 +1,6 @@
-import * as Network from 'expo-network';
 import { isAxiosError } from 'axios';
 
-/** Lança se o dispositivo estiver claramente sem rede (mutações não tentam a API). */
-export async function assertInternetDisponivel(): Promise<void> {
-  let net: Awaited<ReturnType<typeof Network.getNetworkStateAsync>>;
-  try {
-    net = await Promise.race([
-      Network.getNetworkStateAsync(),
-      new Promise<Awaited<ReturnType<typeof Network.getNetworkStateAsync>>>(
-        (_, reject) =>
-          setTimeout(() => reject(new Error('network-check-timeout')), 2500)
-      ),
-    ]);
-  } catch {
-    return;
-  }
-  if (net.isConnected === false || net.isInternetReachable === false) {
-    const err = new Error('Sem conexão com a internet.') as Error & {
-      code?: string;
-    };
-    err.code = 'OFFLINE';
-    throw err;
-  }
-}
-
-/** Falha típica quando não há rede ou o host não responde. */
+/** Falha típica quando não há rede ou o host não responde (útil para diagnóstico). */
 export function isRedeOuServidorIndisponivel(error: unknown): boolean {
   if (!isAxiosError(error)) {
     return error instanceof TypeError && String(error.message).includes('fetch');
