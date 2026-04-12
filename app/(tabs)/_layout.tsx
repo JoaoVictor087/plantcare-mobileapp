@@ -3,6 +3,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Header from '../../components/header';
+import { OfflineBanner } from '../../components/OfflineBanner';
 import { useTheme } from '../../context/ThemeContext';
 import { temSessaoAtiva } from '../../utils/AuthStorageUtils';
 
@@ -27,6 +28,7 @@ export default function TabLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Header />
+      <OfflineBanner />
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: colors.primary,
