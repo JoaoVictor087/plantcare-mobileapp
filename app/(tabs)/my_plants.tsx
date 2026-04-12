@@ -12,7 +12,6 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { CacheHintRow } from '../../components/CacheHintRow';
 import ContainerPlanta from '../../components/ContainerPlanta';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ThemedCard } from '../../components/ThemedCard';
@@ -26,13 +25,7 @@ import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
 const MyPlants = () => {
   const { colors } = useTheme();
-  const {
-    data: plantas = [],
-    isLoading,
-    isError,
-    error,
-    dataSource,
-  } = usePlantasQuery();
+  const { data: plantas = [], isLoading, isError, error } = usePlantasQuery();
   const criarPlanta = useCriarPlantaMutation();
 
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -78,7 +71,6 @@ const MyPlants = () => {
       <Text style={[styles.textoTitulo, { color: colors.text }]}>
         Minhas plantas
       </Text>
-      {dataSource === 'cache' ? <CacheHintRow /> : null}
       {isLoading ? (
         <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
       ) : isError ? (

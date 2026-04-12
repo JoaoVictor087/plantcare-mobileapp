@@ -7,7 +7,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { CacheHintRow } from '../../components/CacheHintRow';
 import { ThemedCard } from '../../components/ThemedCard';
 import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
@@ -15,8 +14,7 @@ import { usePlantasQuery } from '../../hooks/usePlantas';
 
 const Dashboard = () => {
   const { colors } = useTheme();
-  const { data: plantas, isLoading, isError, error, dataSource } =
-    usePlantasQuery();
+  const { data: plantas, isLoading, isError, error } = usePlantasQuery();
 
   const alertas =
     plantas?.filter(
@@ -32,7 +30,6 @@ const Dashboard = () => {
       <Text style={[styles.subtitulo, { color: colors.textSecondary }]}>
         Visão geral das suas plantas
       </Text>
-      {dataSource === 'cache' ? <CacheHintRow /> : null}
       {isLoading ? (
         <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
       ) : isError ? (

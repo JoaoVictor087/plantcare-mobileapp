@@ -10,7 +10,6 @@ import {
   Alert,
   Modal,
 } from 'react-native';
-import { CacheHintRow } from '../../components/CacheHintRow';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ThemedCard } from '../../components/ThemedCard';
 import { layout } from '../../constants/themePalettes';
@@ -33,7 +32,6 @@ export default function CuidadosApexScreen() {
     error,
     refetch,
     isFetching,
-    dataSource,
   } = useCuidadosApexQuery();
   const criar = useCriarCuidadoApexMutation();
   const atualizar = useAtualizarCuidadoApexMutation();
@@ -210,7 +208,6 @@ export default function CuidadosApexScreen() {
       <Text style={[styles.sub, { color: colors.textSecondary }]}>
         Registros via API REST do Oracle APEX.
       </Text>
-      {dataSource === 'cache' ? <CacheHintRow /> : null}
       <View style={styles.toolbar}>
         <TouchableOpacity
           style={[styles.botaoNovo, { backgroundColor: colors.primary }]}
