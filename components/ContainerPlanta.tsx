@@ -8,6 +8,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { layout } from '../constants/themePalettes';
 import type { Planta } from '../types/Planta';
 import { useTheme } from '../context/ThemeContext';
 
@@ -28,18 +29,14 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
       ]}
     >
       <View style={styles.infoTexto}>
-        <Text style={[styles.titulo, { color: colors.primary }]}>
-          {planta.nome}
+        <Text style={[styles.nome, { color: colors.text }]}>{planta.nome}</Text>
+        <Text style={[styles.linha, { color: colors.textSecondary }]}>
+          Umidade {planta.umidade}%
         </Text>
-        <Text style={[styles.titulo, { color: colors.textSecondary }]}>
-          Umidade: {planta.umidade} %
+        <Text style={[styles.linha, { color: colors.textSecondary }]}>
+          {planta.temperatura}ºC
         </Text>
-        <Text style={[styles.titulo, { color: colors.textSecondary }]}>
-          Temperatura: {planta.temperatura}Cº
-        </Text>
-        <Text style={[styles.titulo, { color: colors.textSecondary }]}>
-          Status: {planta.status}
-        </Text>
+        <Text style={[styles.linha, { color: colors.primary }]}>{planta.status}</Text>
       </View>
       <Image
         style={styles.image}
@@ -52,7 +49,11 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, style]}>
       {onPress ? (
-        <Pressable onPress={onPress} accessibilityRole="button">
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          android_ripple={{ color: colors.surfaceMuted }}
+        >
           {content}
         </Pressable>
       ) : (
@@ -68,25 +69,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  titulo: {
-    fontSize: 18,
-    marginTop: 30,
+  nome: {
+    fontSize: 20,
+    fontWeight: '800',
+    marginTop: 16,
+    paddingHorizontal: 12,
+  },
+  linha: {
+    fontSize: 14,
+    marginTop: 8,
+    paddingHorizontal: 12,
   },
   infoArea: {
-    height: 300,
-    width: 350,
-    borderRadius: 10,
+    height: 280,
+    width: 340,
+    borderRadius: layout.radiusMd,
     flexDirection: 'row',
     borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   infoTexto: {
-    alignContent: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   image: {
-    height: 300,
-    width: 170,
-    borderRadius: 10,
-    marginLeft: 18,
+    height: 280,
+    width: 150,
+    borderTopRightRadius: layout.radiusMd,
+    borderBottomRightRadius: layout.radiusMd,
   },
 });
 

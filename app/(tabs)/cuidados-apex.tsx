@@ -9,8 +9,11 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Button,
 } from 'react-native';
+import { CacheHintRow } from '../../components/CacheHintRow';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { ThemedCard } from '../../components/ThemedCard';
+import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
 import {
   useAtualizarCuidadoApexMutation,
@@ -19,11 +22,19 @@ import {
   useExcluirCuidadoApexMutation,
 } from '../../hooks/useCuidadosApex';
 import type { CuidadoApex } from '../../types/CuidadoApex';
+import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
 export default function CuidadosApexScreen() {
   const { colors } = useTheme();
-  const { data: cuidados = [], isLoading, isError, error, refetch, isFetching } =
-    useCuidadosApexQuery();
+  const {
+    data: cuidados = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    dataSource,
+  } = useCuidadosApexQuery();
   const criar = useCriarCuidadoApexMutation();
   const atualizar = useAtualizarCuidadoApexMutation();
   const excluir = useExcluirCuidadoApexMutation();
@@ -63,14 +74,9 @@ export default function CuidadosApexScreen() {
         observacao: obs.trim(),
       },
       {
-        onSuccess: () => {
-          setModalNovo(false);
-        },
-        onError: () => {
-          Alert.alert(
-            'Erro',
-            'Não foi possível criar o registro. Verifique a URL do APEX (EXPO_PUBLIC_APEX_BASE_URL) e a API ORDS.'
-          );
+        onSuccess: () => setModalNovo(false),
+        onError: (err) => {
+          Alert.alert('Não enviado', mensagemErroMutacao(err));
         },
       }
     );
@@ -88,11 +94,9 @@ export default function CuidadosApexScreen() {
         },
       },
       {
-        onSuccess: () => {
-          setModalEditar(null);
-        },
-        onError: () => {
-          Alert.alert('Erro', 'Não foi possível atualizar o registro no APEX.');
+        onSuccess: () => setModalEditar(null),
+        onError: (err) => {
+          Alert.alert('Não enviado', mensagemErroMutacao(err));
         },
       }
     );
@@ -106,8 +110,8 @@ export default function CuidadosApexScreen() {
         style: 'destructive',
         onPress: () => {
           excluir.mutate(c.id, {
-            onError: () => {
-              Alert.alert('Erro', 'Não foi possível excluir via API APEX.');
+            onError: (err) => {
+              Alert.alert('Não enviado', mensagemErroMutacao(err));
             },
           });
         },
@@ -115,13 +119,17 @@ export default function CuidadosApexScreen() {
     ]);
   };
 
+  const inputBase = [
+    styles.input,
+    {
+      borderColor: colors.border,
+      color: colors.text,
+      backgroundColor: colors.surfaceMuted,
+    },
+  ];
+
   const renderItem = ({ item }: { item: CuidadoApex }) => (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-    >
+    <ThemedCard style={styles.cardItem}>
       <Text style={[styles.cardTitulo, { color: colors.text }]}>
         {item.tipoCuidado || '(sem tipo)'}
       </Text>
@@ -138,93 +146,71 @@ export default function CuidadosApexScreen() {
       ) : null}
       <View style={styles.cardAcoes}>
         <TouchableOpacity onPress={() => abrirEditar(item)}>
-          <Text style={{ color: colors.primary, fontWeight: '600' }}>Editar</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => confirmarExcluir(item)}>
-          <Text style={{ color: '#c62828', fontWeight: '600' }}>Excluir</Text>
+          <Text style={{ color: '#c62828', fontWeight: '700' }}>Excluir</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ThemedCard>
   );
 
   const formularioModal = (titulo: string, onSalvar: () => void, onFechar: () => void) => (
-    <View style={styles.modalBackdrop}>
-      <View
-        style={[
-          styles.modalBox,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
+    <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+      <ThemedCard style={styles.modalBox}>
         <Text style={[styles.modalTitulo, { color: colors.text }]}>{titulo}</Text>
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          Dados processados no Oracle APEX (REST). ID da planta opcional se a regra no APEX permitir.
+          Oracle APEX (REST). Ajuste EXPO_PUBLIC_APEX_BASE_URL se necessário.
         </Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              color: colors.text,
-              backgroundColor: colors.background,
-            },
-          ]}
-          placeholder="ID da planta (número)"
+          style={inputBase}
+          placeholder="ID da planta (opcional)"
           placeholderTextColor={colors.textSecondary}
           value={plantaIdStr}
           onChangeText={setPlantaIdStr}
           keyboardType="number-pad"
         />
         <TextInput
-          style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              color: colors.text,
-              backgroundColor: colors.background,
-            },
-          ]}
-          placeholder="Tipo de cuidado (ex: Rega, Adubação)"
+          style={inputBase}
+          placeholder="Tipo (rega, adubação…)"
           placeholderTextColor={colors.textSecondary}
           value={tipo}
           onChangeText={setTipo}
         />
         <TextInput
-          style={[
-            styles.input,
-            styles.inputMultiline,
-            {
-              borderColor: colors.border,
-              color: colors.text,
-              backgroundColor: colors.background,
-            },
-          ]}
+          style={[inputBase, styles.inputMultiline]}
           placeholder="Observações"
           placeholderTextColor={colors.textSecondary}
           value={obs}
           onChangeText={setObs}
           multiline
         />
-        {(criar.isPending || atualizar.isPending) && (
-          <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />
-        )}
         <View style={styles.modalBotoes}>
-          <Button title="Cancelar" onPress={onFechar} color="#666" />
-          <Button
+          <PrimaryButton
+            title="Cancelar"
+            variant="secondary"
+            onPress={onFechar}
+            style={styles.modalBtn}
+          />
+          <PrimaryButton
             title="Salvar"
             onPress={onSalvar}
+            loading={criar.isPending || atualizar.isPending}
             disabled={criar.isPending || atualizar.isPending}
+            style={styles.modalBtn}
           />
         </View>
-      </View>
+      </ThemedCard>
     </View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.titulo, { color: colors.text }]}>Cuidados (Oracle APEX)</Text>
+      <Text style={[styles.titulo, { color: colors.text }]}>Cuidados (APEX)</Text>
       <Text style={[styles.sub, { color: colors.textSecondary }]}>
-        CRUD via API REST exposta pelo APEX. Lista e alterações vêm do backend.
+        Registros via API REST do Oracle APEX.
       </Text>
+      {dataSource === 'cache' ? <CacheHintRow /> : null}
       <View style={styles.toolbar}>
         <TouchableOpacity
           style={[styles.botaoNovo, { backgroundColor: colors.primary }]}
@@ -236,16 +222,18 @@ export default function CuidadosApexScreen() {
           {isFetching ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
-            <Text style={{ color: colors.primary, fontWeight: '600' }}>Atualizar</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700' }}>Atualizar</Text>
           )}
         </TouchableOpacity>
       </View>
       {isLoading ? (
         <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
       ) : isError ? (
-        <Text style={[styles.erro, { color: colors.textSecondary }]}>
-          Falha ao carregar a API APEX. {error instanceof Error ? error.message : ''}
-        </Text>
+        <ThemedCard style={styles.erroWrap}>
+          <Text style={[styles.erro, { color: colors.textSecondary }]}>
+            Falha ao carregar. {error instanceof Error ? error.message : ''}
+          </Text>
+        </ThemedCard>
       ) : (
         <FlatList
           data={cuidados}
@@ -253,23 +241,19 @@ export default function CuidadosApexScreen() {
           renderItem={renderItem}
           ListEmptyComponent={
             <Text style={[styles.vazio, { color: colors.textSecondary }]}>
-              Nenhum registro retornado pela API. Crie um novo ou confira o endpoint.
+              Nenhum registro. Com internet, crie um novo ou confira o endpoint APEX.
             </Text>
           }
-          contentContainerStyle={{ paddingBottom: 32 }}
+          contentContainerStyle={styles.listPad}
         />
       )}
 
-      <Modal visible={modalNovo} animationType="slide" transparent>
-        {formularioModal(
-          'Novo cuidado (APEX)',
-          confirmarCriar,
-          () => setModalNovo(false)
-        )}
+      <Modal visible={modalNovo} animationType="fade" transparent>
+        {formularioModal('Novo cuidado', confirmarCriar, () => setModalNovo(false))}
       </Modal>
-      <Modal visible={!!modalEditar} animationType="slide" transparent>
+      <Modal visible={!!modalEditar} animationType="fade" transparent>
         {formularioModal(
-          'Editar cuidado (APEX)',
+          'Editar cuidado',
           confirmarEditar,
           () => setModalEditar(null)
         )}
@@ -281,17 +265,19 @@ export default function CuidadosApexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: layout.spaceMd,
   },
   titulo: {
     fontSize: 26,
     fontFamily: 'Inter',
-    marginTop: 16,
+    fontWeight: '800',
+    marginTop: layout.spaceMd,
   },
   sub: {
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 6,
+    marginBottom: 10,
     fontSize: 14,
+    lineHeight: 20,
   },
   toolbar: {
     flexDirection: 'row',
@@ -300,81 +286,90 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   botaoNovo: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: layout.radiusMd,
   },
   botaoNovoTexto: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   loader: {
     marginTop: 40,
   },
-  erro: {
+  erroWrap: {
     marginTop: 16,
+  },
+  erro: {
     textAlign: 'center',
+    lineHeight: 20,
+  },
+  listPad: {
+    paddingBottom: 32,
   },
   vazio: {
     textAlign: 'center',
     marginTop: 32,
     paddingHorizontal: 12,
+    lineHeight: 20,
   },
-  card: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 12,
+  cardItem: {
+    marginBottom: layout.spaceMd,
   },
   cardTitulo: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: 6,
   },
   cardLinha: {
     fontSize: 14,
-    marginTop: 2,
+    marginTop: 4,
+    lineHeight: 20,
   },
   cardAcoes: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 20,
-    marginTop: 12,
+    gap: 24,
+    marginTop: 14,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    padding: 16,
+    padding: layout.spaceMd,
   },
   modalBox: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
+    maxWidth: 420,
+    alignSelf: 'center',
+    width: '100%',
   },
   modalTitulo: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     marginBottom: 8,
   },
   hint: {
     fontSize: 12,
-    marginBottom: 12,
+    marginBottom: 14,
+    lineHeight: 17,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    borderRadius: layout.radiusSm,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     marginBottom: 10,
+    fontSize: 16,
   },
   inputMultiline: {
-    minHeight: 80,
+    minHeight: 88,
     textAlignVertical: 'top',
   },
   modalBotoes: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
     marginTop: 8,
+  },
+  modalBtn: {
+    flex: 1,
   },
 });

@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   View,
@@ -7,18 +9,20 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  ActivityIndicator,
+  Platform,
+  ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
-import { isAxiosError } from 'axios';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { ThemedCard } from '../../components/ThemedCard';
+import { layout } from '../../constants/themePalettes';
+import { useTheme } from '../../context/ThemeContext';
+import { useCadastroMutation } from '../../hooks/useAuthMutations';
 import {
   validarCaracterEspecialSenha,
   validarEmail,
   validarNumeroSenha,
   validarTamanhoSenha,
 } from '../../utils/LoginUtils';
-import { useTheme } from '../../context/ThemeContext';
-import { useCadastroMutation } from '../../hooks/useAuthMutations';
 
 interface ErrosState {
   nome?: string;
@@ -52,11 +56,11 @@ const Cadastro = () => {
     }
     if (!validarNumeroSenha(senha)) {
       novosErros.senha =
-        (novosErros.senha || '') + 'A senha deve conter pelo menos um número.\n';
+        (novosErros.senha || '') + 'Inclua pelo menos um número.\n';
     }
     if (!validarCaracterEspecialSenha(senha)) {
       novosErros.senha =
-        (novosErros.senha || '') + 'A senha deve conter um caractere especial.';
+        (novosErros.senha || '') + 'Inclua um caractere especial.';
     }
 
     if (senha !== confirmarSenha) {
@@ -69,7 +73,7 @@ const Cadastro = () => {
 
   const handleCadastro = () => {
     if (!validarCampos()) {
-      Alert.alert('Erro', 'Confira os dados e tente novamente.');
+      Alert.alert('Atenção', 'Confira os campos destacados.');
       return;
     }
 
@@ -77,7 +81,7 @@ const Cadastro = () => {
       { nome, email, senha },
       {
         onSuccess: () => {
-          Alert.alert('Sucesso', 'Conta criada com sucesso!');
+          Alert.alert('Sucesso', 'Conta criada! Faça login.');
           setNome('');
           setEmail('');
           setSenha('');
@@ -87,10 +91,12 @@ const Cadastro = () => {
         },
         onError: (error) => {
           let mensagemErro =
-            'Não foi possível salvar os dados. Tente novamente.';
+            'Não foi possível salvar. Tente novamente.';
           if (isAxiosError(error) && error.response) {
             const data = error.response.data as { nomeErro?: string };
             mensagemErro = data.nomeErro ?? mensagemErro;
+          } else if (isAxiosError(error) && !error.response) {
+            mensagemErro = 'Sem conexão ou servidor indisponível.';
           }
           Alert.alert('Erro', mensagemErro);
         },
@@ -100,149 +106,133 @@ const Cadastro = () => {
 
   const pending = cadastroMutation.isPending;
 
+  const inputStyle = [
+    styles.input,
+    {
+      backgroundColor: colors.surfaceMuted,
+      color: colors.text,
+      borderColor: colors.border,
+    },
+  ];
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
-      behavior="padding"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.texto, { color: colors.text }]}>Crie a sua conta</Text>
-        <View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                  borderColor: colors.border,
-                },
-              ]}
-              onChangeText={setNome}
-              value={nome}
-              placeholderTextColor={colors.textSecondary}
-              placeholder="Digite seu Nome Completo"
-            />
-            {erros.nome ? (
-              <Text style={styles.textoErro}>{erros.nome}</Text>
-            ) : null}
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                  borderColor: colors.border,
-                },
-              ]}
-              onChangeText={setEmail}
-              value={email}
-              placeholderTextColor={colors.textSecondary}
-              placeholder="Digite seu Email"
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            {erros.email ? (
-              <Text style={styles.textoErro}>{erros.email}</Text>
-            ) : null}
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                  borderColor: colors.border,
-                },
-              ]}
-              onChangeText={setSenha}
-              value={senha}
-              secureTextEntry
-              placeholderTextColor={colors.textSecondary}
-              placeholder="Digite sua senha"
-            />
-            {erros.senha ? (
-              <Text style={styles.textoErro}>{erros.senha}</Text>
-            ) : null}
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                  borderColor: colors.border,
-                },
-              ]}
-              onChangeText={setConfirmarSenha}
-              value={confirmarSenha}
-              secureTextEntry
-              placeholderTextColor={colors.textSecondary}
-              placeholder="Confirme a sua senha"
-            />
-            {erros.confirmarSenha ? (
-              <Text style={styles.textoErro}>{erros.confirmarSenha}</Text>
-            ) : null}
-          </View>
-        </View>
-        <TouchableOpacity onPress={handleCadastro} disabled={pending}>
-          <View
-            style={[
-              styles.botao,
-              { backgroundColor: colors.primary, opacity: pending ? 0.7 : 1 },
-            ]}
-          >
-            {pending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.textoBotao}>Criar Conta</Text>
-            )}
-          </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ThemedCard style={styles.card}>
+          <Text style={[styles.titulo, { color: colors.text }]}>Nova conta</Text>
+          <Text style={[styles.sub, { color: colors.textSecondary }]}>
+            Preencha os dados para se cadastrar no PlantCare.
+          </Text>
+          <TextInput
+            style={inputStyle}
+            onChangeText={setNome}
+            value={nome}
+            placeholderTextColor={colors.textSecondary}
+            placeholder="Nome completo"
+          />
+          {erros.nome ? (
+            <Text style={styles.textoErro}>{erros.nome}</Text>
+          ) : null}
+          <TextInput
+            style={inputStyle}
+            onChangeText={setEmail}
+            value={email}
+            placeholderTextColor={colors.textSecondary}
+            placeholder="E-mail"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          {erros.email ? (
+            <Text style={styles.textoErro}>{erros.email}</Text>
+          ) : null}
+          <TextInput
+            style={inputStyle}
+            onChangeText={setSenha}
+            value={senha}
+            secureTextEntry
+            placeholderTextColor={colors.textSecondary}
+            placeholder="Senha"
+          />
+          {erros.senha ? (
+            <Text style={styles.textoErro}>{erros.senha}</Text>
+          ) : null}
+          <TextInput
+            style={inputStyle}
+            onChangeText={setConfirmarSenha}
+            value={confirmarSenha}
+            secureTextEntry
+            placeholderTextColor={colors.textSecondary}
+            placeholder="Confirmar senha"
+          />
+          {erros.confirmarSenha ? (
+            <Text style={styles.textoErro}>{erros.confirmarSenha}</Text>
+          ) : null}
+          <PrimaryButton
+            title={pending ? 'Criando…' : 'Criar conta'}
+            onPress={handleCadastro}
+            loading={pending}
+            style={styles.btn}
+          />
+        </ThemedCard>
+        <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+          <Text style={[styles.link, { color: colors.primary }]}>
+            Já tenho conta
+          </Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    padding: layout.spaceMd,
+  },
+  card: {
+    alignSelf: 'center',
+  },
+  titulo: {
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  sub: {
+    fontSize: 14,
+    marginBottom: layout.spaceMd,
+    lineHeight: 20,
   },
   input: {
-    paddingVertical: 10,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    textAlign: 'center',
-    width: 300,
+    width: '100%',
+    minWidth: 280,
+    height: 50,
+    borderRadius: layout.radiusSm,
     borderWidth: 1,
-  },
-  botao: {
-    borderRadius: 20,
-    width: 200,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  texto: {
-    marginBottom: 30,
-    fontSize: 30,
-    fontFamily: 'Inter',
-  },
-  textoBotao: {
-    fontSize: 20,
-    color: 'white',
+    paddingHorizontal: 14,
+    marginBottom: 6,
+    fontSize: 16,
   },
   textoErro: {
-    color: 'red',
+    color: '#C62828',
+    fontSize: 12,
+    marginBottom: 8,
   },
-  inputContainer: {
-    marginBottom: 30,
+  btn: {
+    marginTop: layout.spaceSm,
+    width: '100%',
+  },
+  link: {
+    marginTop: layout.spaceLg,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 

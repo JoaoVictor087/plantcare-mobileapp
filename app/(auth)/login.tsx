@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   View,
@@ -6,10 +8,10 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
-import { isAxiosError } from 'axios';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { ThemedCard } from '../../components/ThemedCard';
+import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
 import { useLoginMutation } from '../../hooks/useAuthMutations';
 import { credenciaisAdminValidas } from '../../utils/adminCredentials';
@@ -40,6 +42,9 @@ const Login = () => {
           if (isAxiosError(error) && error.response) {
             const data = error.response.data as { nomeErro?: string };
             mensagemErro = data.nomeErro ?? 'Usuário ou senha inválidos.';
+          } else if (isAxiosError(error) && !error.response) {
+            mensagemErro =
+              'Sem conexão ou servidor indisponível. Tente de novo mais tarde.';
           }
           Alert.alert('Erro', mensagemErro);
         },
@@ -50,14 +55,17 @@ const Login = () => {
   const pending = loginMutation.isPending;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.titulo, { color: colors.primary }]}>Faça o seu Login</Text>
-      <View style={styles.inputContainer}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <ThemedCard style={styles.card}>
+        <Text style={[styles.titulo, { color: colors.text }]}>Bem-vindo</Text>
+        <Text style={[styles.sub, { color: colors.textSecondary }]}>
+          Entre com sua conta ou use o acesso administrador.
+        </Text>
         <TextInput
           style={[
             styles.input,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.surfaceMuted,
               color: colors.text,
               borderColor: colors.border,
             },
@@ -68,15 +76,12 @@ const Login = () => {
           placeholder="E-mail ou usuário (admin)"
           autoCapitalize="none"
           autoCorrect={false}
-          keyboardType="default"
         />
-      </View>
-      <View style={styles.inputContainer}>
         <TextInput
           style={[
             styles.input,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.surfaceMuted,
               color: colors.text,
               borderColor: colors.border,
             },
@@ -85,30 +90,22 @@ const Login = () => {
           secureTextEntry
           value={senha}
           placeholderTextColor={colors.textSecondary}
-          placeholder="Digite a sua senha"
+          placeholder="Senha"
         />
-      </View>
-      <TouchableOpacity onPress={handleLogin} disabled={pending}>
-        <View
-          style={[
-            styles.botao,
-            { backgroundColor: colors.primary, opacity: pending ? 0.7 : 1 },
-          ]}
-        >
-          {pending ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.textoBotao}>Fazer Login</Text>
-          )}
-        </View>
-      </TouchableOpacity>
-      <Text style={[styles.dicaAdmin, { color: colors.textSecondary }]}>
-        Administrador: usuário e senha{' '}
-        <Text style={{ fontWeight: '700' }}>admin</Text>
-      </Text>
+        <PrimaryButton
+          title={pending ? 'Entrando…' : 'Entrar'}
+          onPress={handleLogin}
+          loading={pending}
+          style={styles.btnMain}
+        />
+        <Text style={[styles.dicaAdmin, { color: colors.textSecondary }]}>
+          Admin local: usuário e senha{' '}
+          <Text style={{ fontWeight: '800', color: colors.primary }}>admin</Text>
+        </Text>
+      </ThemedCard>
       <TouchableOpacity onPress={() => router.replace('/(auth)/cadastro')}>
-        <Text style={[styles.textoCriarConta, { color: colors.primary }]}>
-          Não tem conta? Cadastre-se agora
+        <Text style={[styles.link, { color: colors.primary }]}>
+          Criar conta
         </Text>
       </TouchableOpacity>
     </View>
@@ -116,48 +113,49 @@ const Login = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    alignItems: 'center',
+    justifyContent: 'center',
+    padding: layout.spaceMd,
   },
-  input: {
-    paddingVertical: 10,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    textAlign: 'center',
-    width: 300,
-    borderWidth: 1,
-  },
-  inputContainer: {
-    marginBottom: 30,
+  card: {
+    alignSelf: 'center',
   },
   titulo: {
-    marginTop: 80,
-    fontSize: 25,
-    fontFamily: 'Inter',
-    marginBottom: 110,
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
   },
-  botao: {
-    marginTop: 70,
-    width: 200,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sub: {
+    fontSize: 14,
+    marginBottom: layout.spaceMd,
+    lineHeight: 20,
   },
-  textoBotao: {
-    color: 'white',
-    fontSize: 18,
+  input: {
+    width: '100%',
+    minWidth: 280,
+    height: 50,
+    borderRadius: layout.radiusSm,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    fontSize: 16,
   },
-  textoCriarConta: {
-    marginTop: 10,
+  btnMain: {
+    marginTop: 8,
+    width: '100%',
   },
   dicaAdmin: {
-    marginTop: 20,
-    fontSize: 13,
+    marginTop: layout.spaceMd,
+    fontSize: 12,
     textAlign: 'center',
-    paddingHorizontal: 24,
     lineHeight: 18,
+  },
+  link: {
+    marginTop: layout.spaceLg,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 

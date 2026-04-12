@@ -12,12 +12,16 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { ThemedCard } from '../../components/ThemedCard';
+import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
 import {
   useAtualizarPlantaMutation,
   useExcluirPlantaMutation,
   usePlantaQuery,
 } from '../../hooks/usePlantas';
+import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
 export default function PlantaDetalheScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,10 +53,10 @@ export default function PlantaDetalheScreen() {
       { id: plantId, payload: { nome: nome.trim(), especie: especie.trim() } },
       {
         onSuccess: () => {
-          Alert.alert('Sucesso', 'Planta atualizada.');
+          Alert.alert('Salvo', 'Planta atualizada no servidor.');
         },
-        onError: () => {
-          Alert.alert('Erro', 'Não foi possível atualizar.');
+        onError: (err) => {
+          Alert.alert('Não enviado', mensagemErroMutacao(err));
         },
       }
     );
@@ -72,8 +76,8 @@ export default function PlantaDetalheScreen() {
               onSuccess: () => {
                 router.back();
               },
-              onError: () => {
-                Alert.alert('Erro', 'Não foi possível excluir.');
+              onError: (err) => {
+                Alert.alert('Não enviado', mensagemErroMutacao(err));
               },
             });
           },
@@ -83,6 +87,15 @@ export default function PlantaDetalheScreen() {
   };
 
   const busy = atualizar.isPending || excluir.isPending;
+
+  const inputStyle = [
+    styles.input,
+    {
+      borderColor: colors.border,
+      color: colors.text,
+      backgroundColor: colors.surfaceMuted,
+    },
+  ];
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -104,7 +117,7 @@ export default function PlantaDetalheScreen() {
         >
           <Ionicons name="arrow-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.topTitle, { color: colors.text }]}>Detalhe da planta</Text>
+        <Text style={[styles.topTitle, { color: colors.text }]}>Detalhe</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -115,73 +128,42 @@ export default function PlantaDetalheScreen() {
           style={styles.loader}
         />
       ) : isError ? (
-        <Text style={[styles.erro, { color: colors.textSecondary }]}>
-          {error instanceof Error ? error.message : 'Erro ao carregar'}
-        </Text>
+        <ThemedCard style={styles.erroCard}>
+          <Text style={[styles.erro, { color: colors.textSecondary }]}>
+            {error instanceof Error ? error.message : 'Não foi possível abrir esta planta.'}
+          </Text>
+        </ThemedCard>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Nome</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                borderColor: colors.border,
-                color: colors.text,
-                backgroundColor: colors.surface,
-              },
-            ]}
-            value={nome}
-            onChangeText={setNome}
-          />
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Espécie</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                borderColor: colors.border,
-                color: colors.text,
-                backgroundColor: colors.surface,
-              },
-            ]}
-            value={especie}
-            onChangeText={setEspecie}
-          />
-          {planta ? (
-            <Text style={[styles.meta, { color: colors.textSecondary }]}>
-              Status: {planta.status} · Umidade {planta.umidade}% · Temp.{' '}
-              {planta.temperatura}ºC
-            </Text>
-          ) : null}
-
-          <TouchableOpacity
-            style={[
-              styles.botaoPrimario,
-              { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 },
-            ]}
-            onPress={salvar}
-            disabled={busy}
-          >
-            {atualizar.isPending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.botaoTexto}>Salvar alterações</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.botaoPerigo, { opacity: busy ? 0.7 : 1 }]}
-            onPress={remover}
-            disabled={busy}
-          >
-            {excluir.isPending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.botaoTexto}>Excluir planta</Text>
-            )}
-          </TouchableOpacity>
+          <ThemedCard>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Nome</Text>
+            <TextInput style={inputStyle} value={nome} onChangeText={setNome} />
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Espécie</Text>
+            <TextInput style={inputStyle} value={especie} onChangeText={setEspecie} />
+            {planta ? (
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                {planta.status} · Umidade {planta.umidade}% · {planta.temperatura}ºC
+              </Text>
+            ) : null}
+            <PrimaryButton
+              title={atualizar.isPending ? 'Salvando…' : 'Salvar alterações'}
+              onPress={salvar}
+              loading={atualizar.isPending}
+              disabled={busy}
+              style={styles.btn}
+            />
+            <PrimaryButton
+              title={excluir.isPending ? 'Removendo…' : 'Excluir planta'}
+              variant="danger"
+              onPress={remover}
+              loading={excluir.isPending}
+              disabled={busy}
+              style={styles.btnDanger}
+            />
+          </ThemedCard>
         </ScrollView>
       )}
     </View>
@@ -208,51 +190,45 @@ const styles = StyleSheet.create({
   },
   topTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   loader: {
     marginTop: 48,
   },
-  erro: {
+  erroCard: {
+    margin: layout.spaceMd,
     marginTop: 24,
+  },
+  erro: {
     textAlign: 'center',
-    paddingHorizontal: 24,
+    lineHeight: 22,
   },
   scroll: {
-    padding: 20,
+    padding: layout.spaceMd,
     paddingBottom: 40,
   },
   label: {
     marginBottom: 6,
-    marginTop: 12,
+    marginTop: 10,
+    fontWeight: '600',
+    fontSize: 13,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: layout.radiusSm,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 16,
   },
   meta: {
-    marginTop: 16,
+    marginTop: 14,
     fontSize: 14,
+    lineHeight: 20,
   },
-  botaoPrimario: {
-    marginTop: 28,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
+  btn: {
+    marginTop: layout.spaceMd,
   },
-  botaoPerigo: {
-    marginTop: 16,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    backgroundColor: '#b71c1c',
-  },
-  botaoTexto: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  btnDanger: {
+    marginTop: 12,
   },
 });

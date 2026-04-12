@@ -22,6 +22,8 @@ O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe 
 
 **Acesso administrador (demonstração):** na tela de login, use usuário `admin` e senha `admin` para uma sessão local (persistida no dispositivo, sem JWT). Útil para testar navegação e UI quando a API não está disponível; o perfil comum continua usando e-mail/senha reais no backend.
 
+**Sem internet / API fora do ar:** após um carregamento bem-sucedido, listas de plantas e de cuidados APEX são salvas em cache no aparelho (`AsyncStorage`). Em falhas de rede ou erro 5xx, o app tenta exibir essa cópia e mostra avisos na interface. **Criar, editar e excluir** exigem conexão: o app bloqueia o envio e informa o usuário.
+
 ## Tecnologias
 
 - React Native / Expo (~54)
@@ -29,7 +31,8 @@ O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe 
 - Expo Router (navegação por arquivos e rotas declaradas)
 - TanStack Query (`useQuery`, `useMutation`)
 - Axios (cliente HTTP da API principal e do endpoint APEX)
-- AsyncStorage (sessão e preferência de tema)
+- AsyncStorage (sessão, tema e cache offline das listas)
+- expo-network (indicador de conectividade na barra superior das abas)
 - Oracle APEX (funcionalidade de cuidados exposta via REST — configurar URL no ambiente)
 
 ## Telas (rotas) principais
@@ -93,3 +96,4 @@ No vídeo deve aparecer: navegação entre telas, login, chamadas à API, uso da
 - `context/` — tema claro/escuro
 - `providers/` — `QueryClient` e composição de providers
 - `types/` — tipos TypeScript compartilhados
+- `utils/offlineCache.ts` / `networkErrors.ts` — persistência local e detecção de falhas de rede

@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   View,
@@ -8,21 +10,29 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
-  Button,
   TextInput,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { CacheHintRow } from '../../components/CacheHintRow';
 import ContainerPlanta from '../../components/ContainerPlanta';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { ThemedCard } from '../../components/ThemedCard';
+import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
 import {
   useCriarPlantaMutation,
   usePlantasQuery,
 } from '../../hooks/usePlantas';
+import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
 const MyPlants = () => {
   const { colors } = useTheme();
-  const { data: plantas = [], isLoading, isError, error } = usePlantasQuery();
+  const {
+    data: plantas = [],
+    isLoading,
+    isError,
+    error,
+    dataSource,
+  } = usePlantasQuery();
   const criarPlanta = useCriarPlantaMutation();
 
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -31,7 +41,7 @@ const MyPlants = () => {
 
   const salvarPlanta = () => {
     if (!novaPlantaNome.trim() || !novaPlantaEspecie.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha o nome e a espécie.');
+      Alert.alert('Atenção', 'Preencha o nome e a espécie da planta.');
       return;
     }
 
@@ -43,36 +53,45 @@ const MyPlants = () => {
           setNovaPlantaNome('');
           setNovaPlantaEspecie('');
         },
-        onError: () => {
-          Alert.alert('Erro', 'Não foi possível salvar a planta.');
+        onError: (err) => {
+          Alert.alert('Não enviado', mensagemErroMutacao(err));
         },
       }
     );
   };
 
   const componenteVazio = () => (
-    <View style={styles.containerVazio}>
-      <Text style={[styles.containerVazioTexto, { color: colors.textSecondary }]}>
-        Você ainda não cadastrou nenhuma planta
+    <ThemedCard style={styles.vazioCard}>
+      <Ionicons name="leaf-outline" size={48} color={colors.textSecondary} />
+      <Text style={[styles.vazioTitulo, { color: colors.text }]}>
+        Nenhuma planta ainda
       </Text>
-    </View>
+      <Text style={[styles.vazioTxt, { color: colors.textSecondary }]}>
+        Toque no + para cadastrar quando estiver online, ou aguarde dados em
+        cache se já usou o app antes.
+      </Text>
+    </ThemedCard>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.textoTitulo, { color: colors.text }]}>
-        Minhas Plantas
+        Minhas plantas
       </Text>
+      {dataSource === 'cache' ? <CacheHintRow /> : null}
       {isLoading ? (
         <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
       ) : isError ? (
-        <Text style={[styles.erro, { color: colors.textSecondary }]}>
-          Erro ao carregar plantas. {error instanceof Error ? error.message : ''}
-        </Text>
+        <ThemedCard style={styles.erroBox}>
+          <Text style={[styles.erroTxt, { color: colors.textSecondary }]}>
+            Não foi possível carregar. {error instanceof Error ? error.message : ''}
+          </Text>
+        </ThemedCard>
       ) : (
         <FlatList
           data={plantas}
           keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <ContainerPlanta
               planta={item}
@@ -87,24 +106,23 @@ const MyPlants = () => {
           ListEmptyComponent={componenteVazio}
         />
       )}
-      <TouchableOpacity onPress={() => setModalVisivel(true)}>
-        <Ionicons name="add-circle" size={64} style={[styles.add, { color: colors.primaryDark }]} />
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.primary }]}
+        onPress={() => setModalVisivel(true)}
+        activeOpacity={0.9}
+      >
+        <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent
         visible={modalVisivel}
         onRequestClose={() => setModalVisivel(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-          >
+        <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+          <ThemedCard style={styles.modalCard}>
             <Text style={[styles.modalTitulo, { color: colors.text }]}>
-              Adicionar Nova Planta
+              Nova planta
             </Text>
             <TextInput
               style={[
@@ -112,10 +130,10 @@ const MyPlants = () => {
                 {
                   borderColor: colors.border,
                   color: colors.text,
-                  backgroundColor: colors.background,
+                  backgroundColor: colors.surfaceMuted,
                 },
               ]}
-              placeholder="Nome da Planta (ex: Samambaia)"
+              placeholder="Nome (ex: Samambaia)"
               placeholderTextColor={colors.textSecondary}
               value={novaPlantaNome}
               onChangeText={setNovaPlantaNome}
@@ -126,26 +144,29 @@ const MyPlants = () => {
                 {
                   borderColor: colors.border,
                   color: colors.text,
-                  backgroundColor: colors.background,
+                  backgroundColor: colors.surfaceMuted,
                 },
               ]}
-              placeholder="Espécie (ex: Nephrolepis exaltata)"
+              placeholder="Espécie científica"
               placeholderTextColor={colors.textSecondary}
               value={novaPlantaEspecie}
               onChangeText={setNovaPlantaEspecie}
             />
-            {criarPlanta.isPending ? (
-              <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
-            ) : null}
-            <View style={styles.modalBotoes}>
-              <Button title="Cancelar" onPress={() => setModalVisivel(false)} color="red" />
-              <Button
-                title={criarPlanta.isPending ? 'Salvando...' : 'Salvar'}
+            <View style={styles.modalActions}>
+              <PrimaryButton
+                title="Cancelar"
+                variant="secondary"
+                onPress={() => setModalVisivel(false)}
+                style={styles.btnHalf}
+              />
+              <PrimaryButton
+                title={criarPlanta.isPending ? 'Salvando…' : 'Salvar'}
                 onPress={salvarPlanta}
-                disabled={criarPlanta.isPending}
+                loading={criarPlanta.isPending}
+                style={styles.btnHalf}
               />
             </View>
-          </View>
+          </ThemedCard>
         </View>
       </Modal>
     </View>
@@ -158,63 +179,87 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textoTitulo: {
-    marginBottom: 16,
-    fontSize: 30,
+    marginBottom: 8,
+    fontSize: 28,
     fontFamily: 'Inter',
-    marginTop: 20,
+    fontWeight: '800',
+    marginTop: layout.spaceMd,
   },
-  containerVazio: {
-    marginTop: 50,
+  listContent: {
+    paddingBottom: 100,
     alignItems: 'center',
-  },
-  containerVazioTexto: {
-    fontSize: 16,
-  },
-  add: {
-    position: 'absolute',
-    bottom: 30,
-    right: -30,
-    shadowColor: '#000',
   },
   loader: {
     marginTop: 50,
   },
-  erro: {
-    marginTop: 24,
-    paddingHorizontal: 20,
+  erroBox: {
+    marginHorizontal: layout.spaceMd,
+    marginTop: 16,
+  },
+  erroTxt: {
     textAlign: 'center',
+    lineHeight: 20,
+  },
+  vazioCard: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  vazioTitulo: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  vazioTxt: {
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontSize: 14,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 28,
+    right: 20,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
+    padding: layout.spaceMd,
   },
-  modalContainer: {
-    width: '90%',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
+  modalCard: {
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   modalTitulo: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '800',
+    marginBottom: layout.spaceMd,
   },
   input: {
     width: '100%',
-    height: 44,
+    height: 48,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
+    borderRadius: layout.radiusSm,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    fontSize: 16,
   },
-  modalBotoes: {
+  modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginTop: 10,
+    gap: 12,
+    marginTop: 8,
+  },
+  btnHalf: {
+    flex: 1,
   },
 });
 
