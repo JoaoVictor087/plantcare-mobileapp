@@ -8,10 +8,12 @@ import {
   Alert,
   Pressable,
   Switch,
+  TouchableOpacity
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
 import { isSessaoAdmin, limparAuthData } from '../../utils/AuthStorageUtils';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const Options = () => {
   const { colors, isDark, toggleMode } = useTheme();
@@ -58,9 +60,6 @@ const Options = () => {
           <Text style={styles.adminTagTexto}>Sessão administrador (local)</Text>
         </View>
       ) : null}
-      <Text style={[styles.nomeIntegrante, { color: colors.textSecondary }]}>
-        Juan Pablo Rebelo Coelho · RM 560445
-      </Text>
       <Pressable>
         <Text style={[styles.editarPerfil, { color: colors.text }]}>Editar Perfil</Text>
       </Pressable>
@@ -79,6 +78,18 @@ const Options = () => {
           <Switch value={isDark} onValueChange={toggleMode} />
         </View>
       </View>
+      
+      <View style={styles.secao}>
+        <Text style={[styles.tituloTexto, { color: colors.text }]}>Aplicativo</Text>
+        <TouchableOpacity
+          style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          onPress={() => router.push('/sobre')}
+        >
+          <Text style={{ color: colors.text }}>Sobre o PlantCare</Text>
+          <MaterialIcons name="chevron-right" size={22} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.secao}>
         <Text style={[styles.tituloTexto, { color: colors.text }]}>Conta</Text>
         <Pressable

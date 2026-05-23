@@ -15,6 +15,7 @@ type PlantaApiDTO = {
   imgLink?: string;
   umidade?: number;
   temperatura?: number;
+  luminosidade?: number;
   status?: string;
 };
 
@@ -34,6 +35,7 @@ function mapDto(dto: PlantaApiDTO): Planta {
     imgLink: dto.imgLink,
     umidade: dto.umidade ?? 0,
     temperatura: dto.temperatura ?? 0,
+    luminosidade: dto.luminosidade ?? 0,
     status: dto.status ?? 'N/A',
   };
 }

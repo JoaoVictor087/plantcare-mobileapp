@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Planta } from '../types/Planta';
 import type { CuidadoApex } from '../types/CuidadoApex';
 
-const PLANTAS_KEY = '@plantcare_cache_plantas_v1';
+const PLANTAS_KEY = '@plantcare_cache_plantas_v2';
 const CUIDADOS_KEY = '@plantcare_cache_cuidados_v1';
 
 type PlantaSerial = Omit<Planta, 'dataCadastro' | 'dataAtualizacao'> & {

@@ -5,7 +5,8 @@ export interface Planta {
     dataCadastro: Date;
     dataAtualizacao?: Date;
     imgLink?: string;
-    umidade?: number;
-    temperatura?: number;
-    status?: string;
+    umidade: number;
+    temperatura: number;
+    luminosidade: number;
+    status: string;
 }

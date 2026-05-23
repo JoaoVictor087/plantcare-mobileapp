@@ -14,8 +14,6 @@ import { ThemedCard } from '../../components/ThemedCard';
 import { layout } from '../../constants/themePalettes';
 import { useTheme } from '../../context/ThemeContext';
 import { useLoginMutation } from '../../hooks/useAuthMutations';
-import { credenciaisAdminValidas } from '../../utils/adminCredentials';
-import { limparAuthData, salvarSessaoAdmin } from '../../utils/AuthStorageUtils';
 
 const Login = () => {
   const { colors } = useTheme();
@@ -24,12 +22,6 @@ const Login = () => {
   const loginMutation = useLoginMutation();
 
   const handleLogin = async () => {
-    if (credenciaisAdminValidas(email, senha)) {
-      await limparAuthData();
-      await salvarSessaoAdmin();
-      router.replace('/(tabs)/dashboard');
-      return;
-    }
 
     loginMutation.mutate(
       { email, senha },
@@ -73,7 +65,7 @@ const Login = () => {
           onChangeText={setEmail}
           value={email}
           placeholderTextColor={colors.textSecondary}
-          placeholder="E-mail ou usuário (admin)"
+          placeholder="E-mail"
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -98,10 +90,6 @@ const Login = () => {
           loading={pending}
           style={styles.btnMain}
         />
-        <Text style={[styles.dicaAdmin, { color: colors.textSecondary }]}>
-          Admin local: usuário e senha{' '}
-          <Text style={{ fontWeight: '800', color: colors.primary }}>admin</Text>
-        </Text>
       </ThemedCard>
       <TouchableOpacity onPress={() => router.replace('/(auth)/cadastro')}>
         <Text style={[styles.link, { color: colors.primary }]}>
