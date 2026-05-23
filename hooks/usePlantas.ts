@@ -15,7 +15,6 @@ import {
 } from '../utils/offlineCache';
 import { plantKeys } from './queryKeys';
 
-/** Tempo máximo de espera pela API antes de usar só o armazenamento local. */
 const LISTAR_PLANTAS_TIMEOUT_MS = 8000;
 
 export type PlantasDataSource = 'live' | 'cache' | null;

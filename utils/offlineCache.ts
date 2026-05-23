@@ -56,12 +56,10 @@ export async function carregarCuidadosCache(): Promise<CuidadoApex[]> {
   }
 }
 
-/** IDs negativos: criados só no aparelho (sem API). */
 export function novoIdLocal(): number {
   return -Math.floor(Date.now() * 1000 + Math.random() * 1000);
 }
 
-/** Mantém plantas locais (id negativo) quando a API devolve a lista oficial. */
 export async function mergePlantasServidorComLocais(
   servidor: Planta[]
 ): Promise<Planta[]> {
@@ -70,7 +68,6 @@ export async function mergePlantasServidorComLocais(
   return [...locais, ...servidor];
 }
 
-/** Mantém cuidados locais (id negativo) quando a API responde. */
 export async function mergeCuidadosServidorComLocais(
   servidor: CuidadoApex[]
 ): Promise<CuidadoApex[]> {

@@ -46,7 +46,6 @@ export async function listarPlantas(): Promise<Planta[]> {
   return list.map(mapDto);
 }
 
-/** Usa a lista do backend (compatível quando não existe GET /plantas/:id). */
 export async function buscarPlantaPorId(id: number): Promise<Planta> {
   const plantas = await listarPlantas();
   const found = plantas.find((p) => p.id === id);

@@ -27,7 +27,6 @@ import {
   useRemoverSensorMutation,
   useSensoresQuery,
 } from '../../hooks/useSensores';
-import { notificacaoImediata } from '../../services/notificationService';
 import type { TipoSensor } from '../../types/Sensor';
 import { mensagemErroMutacao } from '../../utils/mutationErrors';
 
@@ -133,10 +132,13 @@ export default function PlantaDetalheScreen() {
   };
 
   const testarNotificacao = async () => {
-    if (!planta) return;
-    await notificacaoImediata(plantId, planta.nome);
-    Alert.alert('Notificação enviada', 'Verifique as notificações do seu dispositivo.');
-  };
+  if (!planta) return;
+  Alert.alert(
+    '🌿 Hora de regar!',
+    `Sua planta "${planta.nome}" precisa de água.`,
+    [{ text: 'OK' }]
+  );
+};
 
   const busy = atualizar.isPending || excluir.isPending;
 
@@ -173,7 +175,6 @@ export default function PlantaDetalheScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-        {/* ── Dados do sensor (leitura em tempo real) ── */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="sensors" size={20} color={colors.primary} />
@@ -210,7 +211,6 @@ export default function PlantaDetalheScreen() {
           </View>
         </ThemedCard>
 
-        {/* ── Sensores cadastrados ── */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="memory" size={20} color={colors.primary} />
@@ -256,7 +256,6 @@ export default function PlantaDetalheScreen() {
           )}
         </ThemedCard>
 
-        {/* ── Editar dados da planta ── */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="edit" size={20} color={colors.primary} />
@@ -275,7 +274,6 @@ export default function PlantaDetalheScreen() {
           />
         </ThemedCard>
 
-        {/* ── Notificações ── */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="notifications-active" size={20} color={colors.primary} />
@@ -291,7 +289,6 @@ export default function PlantaDetalheScreen() {
           />
         </ThemedCard>
 
-        {/* ── Zona de perigo ── */}
         <ThemedCard style={styles.section}>
           <PrimaryButton
             title={excluir.isPending ? 'Removendo…' : 'Excluir planta'}
@@ -304,7 +301,6 @@ export default function PlantaDetalheScreen() {
 
       </ScrollView>
 
-      {/* Modal adicionar sensor */}
       <Modal visible={modalSensor} transparent animationType="fade">
         <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
           <ThemedCard style={styles.modalBox}>
@@ -370,7 +366,6 @@ export default function PlantaDetalheScreen() {
   );
 }
 
-/* ── Componentes auxiliares ── */
 
 function TopBar({
   insets,

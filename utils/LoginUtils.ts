@@ -6,7 +6,6 @@ export function validarEmail (email: string): boolean {
     return emailTeste.test(email);
 }
 
-//validarSenha
 export function validarTamanhoSenha (senha: string): boolean {
     if(!senha){
         return false;

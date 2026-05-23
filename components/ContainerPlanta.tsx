@@ -5,12 +5,15 @@ import {
   StyleSheet,
   Image,
   Pressable,
+  ActivityIndicator,  
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { layout } from '../constants/themePalettes';
 import type { Planta } from '../types/Planta';
 import { useTheme } from '../context/ThemeContext';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useDiagnosticoQuery } from '../hooks/useDiagnostico';
 
 interface ContainerPlantaProps {
   planta: Planta;
@@ -20,6 +23,8 @@ interface ContainerPlantaProps {
 
 const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
   const { colors } = useTheme();
+  const { data: diagnostico, isLoading: loadingDiag } = useDiagnosticoQuery(planta.id);
+  console.log('PLANTA ID:', planta.id, 'LOADING:', loadingDiag, 'DIAG:', diagnostico);
 
   const content = (
     <View
@@ -37,6 +42,21 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
           {planta.temperatura}ºC
         </Text>
         <Text style={[styles.linha, { color: colors.primary }]}>{planta.status}</Text>
+        <View style={styles.diagArea}>
+          {loadingDiag ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
+          ) : diagnostico?.diagnostico ? (
+            <View style={styles.diagRow}>
+              <MaterialIcons name="psychology" size={13} color={colors.primary} />
+              <Text
+                style={[styles.diagTexto, { color: colors.textSecondary }]}
+                numberOfLines={3}
+              >
+                {diagnostico.diagnostico}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
       <Image
         style={styles.image}
@@ -64,7 +84,6 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
 };
 
 const styles = StyleSheet.create({
-  /** Sem flex:1 — dentro de FlatList, flex:1 quebra o scroll (itens “lutam” pela altura). */
   container: {
     width: '100%',
     alignItems: 'center',
@@ -95,13 +114,28 @@ const styles = StyleSheet.create({
   },
   infoTexto: {
     flex: 1,
-    justifyContent: 'center',
   },
   image: {
     height: 280,
     width: 150,
     borderTopRightRadius: layout.radiusMd,
     borderBottomRightRadius: layout.radiusMd,
+  },
+  diagArea: {
+    marginTop: 6,
+    paddingHorizontal: 12,
+    flex: 1,
+  },
+  diagRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  diagTexto: {
+    fontSize: 11,
+    lineHeight: 16,
+    flex: 1,
+    fontStyle: 'italic',
   },
 });
 

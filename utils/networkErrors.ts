@@ -1,6 +1,5 @@
 import { isAxiosError } from 'axios';
 
-/** Falha típica quando não há rede ou o host não responde (útil para diagnóstico). */
 export function isRedeOuServidorIndisponivel(error: unknown): boolean {
   if (!isAxiosError(error)) {
     return error instanceof TypeError && String(error.message).includes('fetch');

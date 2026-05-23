@@ -39,7 +39,6 @@ export const isSessaoAdmin = async (): Promise<boolean> => {
     }
 };
 
-/** Há JWT de usuário comum ou sessão administrador ativa. */
 export const temSessaoAtiva = async (): Promise<boolean> => {
     const token = await getAccessToken();
     if (token) return true;

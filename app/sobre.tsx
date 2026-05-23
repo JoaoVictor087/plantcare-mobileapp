@@ -14,7 +14,6 @@ import { ThemedCard } from '../components/ThemedCard';
 import { layout } from '../constants/themePalettes';
 import { useTheme } from '../context/ThemeContext';
 
-// Hash do commit é injetado via app.json > extra ou substituído no build
 const COMMIT_HASH: string =
   (Constants.expoConfig?.extra?.commitHash as string | undefined) ??
   process.env.EXPO_PUBLIC_COMMIT_HASH ??
@@ -35,7 +34,6 @@ export default function SobreScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Top bar */}
       <View
         style={[
           styles.topBar,
@@ -54,7 +52,6 @@ export default function SobreScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Logo / nome */}
         <ThemedCard style={styles.heroCard}>
           <MaterialIcons name="eco" size={56} color={colors.primary} />
           <Text style={[styles.appNome, { color: colors.text }]}>PlantCare</Text>
@@ -63,7 +60,6 @@ export default function SobreScreen() {
           </Text>
         </ThemedCard>
 
-        {/* Versão e commit */}
         <ThemedCard style={styles.section}>
           <InfoRow
             icon="tag"
@@ -80,7 +76,6 @@ export default function SobreScreen() {
           />
         </ThemedCard>
 
-        {/* Sobre o projeto */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="info-outline" size={18} color={colors.primary} />
@@ -94,7 +89,6 @@ export default function SobreScreen() {
           </Text>
         </ThemedCard>
 
-        {/* Integrantes */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="group" size={18} color={colors.primary} />
@@ -116,7 +110,6 @@ export default function SobreScreen() {
           ))}
         </ThemedCard>
 
-        {/* Tecnologias */}
         <ThemedCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="code" size={18} color={colors.primary} />
