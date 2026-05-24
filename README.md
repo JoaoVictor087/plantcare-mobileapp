@@ -1,99 +1,57 @@
 # PlantCare 🌿
 
-**Challenge Sprint - FIAP - 2TDSPA**
-
-Aplicativo móvel para acompanhar o cuidado com plantas: cadastro de espécies, visão geral no painel, registro de cuidados integrado ao **Oracle APEX** via API REST e autenticação real contra o backend do grupo.
+**Challenge Sprint · FIAP · 2TDSPA**
 
 ## Integrantes
 
 | Nome | RM |
-|------|-----|
+|---|---|
 | João Victor Alves da Silva | 559726 |
 | Vinicius Kenzo Tocuyosi | 559982 |
 | Juan Pablo Rebelo Coelho | 560445 |
 
 ## Problema
 
-Muitas pessoas esquecem de regar, podar ou observar sinais de estresse nas plantas domésticas. Informações dispersas e falta de histórico dificultam manter um calendário de cuidados coerente com cada espécie.
+Muitas pessoas perdem plantas por não saber a hora certa de regar, a quantidade de luz ideal ou por não perceberem sinais de doenças a tempo.
 
-## Solução proposta
+## Solução
 
-O **PlantCare** centraliza o cadastro de plantas (API principal em HTTP), exibe um **dashboard** com dados vindos do servidor (sem mocks na interface) e oferece uma área de **cuidados** cujo **CRUD** é feito contra uma **API REST publicada pelo Oracle APEX**, onde ficam regras e persistência desse fluxo. O app usa **Expo Router** (rotas explícitas), **TanStack Query** para leitura/atualização de cache após mutações, **tema claro/escuro** persistido e **login** com tokens armazenados de forma segura (AsyncStorage).
-
-**Acesso administrador (demonstração):** na tela de login, use usuário `admin` e senha `admin` para uma sessão local (persistida no dispositivo, sem JWT). Útil para testar navegação e UI quando a API não está disponível; o perfil comum continua usando e-mail/senha reais no backend.
-
-**Sem internet / API fora do ar:** as listas **sempre** deixam de “carregar para sempre”: após um tempo limite ou qualquer erro, o app mostra o que estiver salvo no aparelho (pode ser lista vazia). **Criar, editar e excluir** plantas e cuidados funcionam **no aparelho** com IDs negativos (dados locais em `AsyncStorage`); quando a API voltar, os registros do servidor são mesclados com esses itens locais.
+O **PlantCare** é um app mobile que monitora plantas domésticas via sensores de umidade, temperatura e luminosidade. O app exibe dados em tempo real, gera diagnósticos com IA e calcula um saudômetro com base no histórico de saúde da planta.
 
 ## Tecnologias
 
-- React Native / Expo (~54)
+- React Native + Expo
 - TypeScript
-- Expo Router (navegação por arquivos e rotas declaradas)
-- TanStack Query (`useQuery`, `useMutation`)
-- Axios (cliente HTTP da API principal e do endpoint APEX)
-- AsyncStorage (sessão, tema e cache offline das listas)
-- expo-network (indicador de conectividade na barra superior das abas)
-- Oracle APEX (funcionalidade de cuidados exposta via REST — configurar URL no ambiente)
-
-## Telas (rotas) principais
-
-1. `app/index` — checagem de sessão e redirecionamento
-2. `app/(auth)/login` — autenticação (usuário comum via API ou admin/admin local)
-3. `app/(auth)/cadastro` — criação de conta
-4. `app/(tabs)/dashboard` — resumo com dados da API de plantas
-5. `app/(tabs)/my_plants` — lista e criação de plantas
-6. `app/plant/[id]` — leitura, atualização e exclusão de uma planta
-7. `app/(tabs)/cuidados-apex` — CRUD de cuidados via API do APEX
-8. `app/(tabs)/options` — tema e logout
+- Expo Router
+- TanStack Query
+- Axios
+- Oracle APEX (saudômetro via REST)
+- Spring Boot (API backend)
+- expo-notifications
 
 ## Como executar
-
-### Pré-requisitos
-
-- Node.js (LTS recomendado)
-- Conta Expo / Expo Go no dispositivo (ou emulador)
-
-### Passos
 
 ```bash
 git clone <url-do-repositorio>
 cd plantcare-mobileapp
 npm install
-```
-
-Opcional: copie `.env.example` para `.env` e ajuste as URLs da API e do APEX.
-
-```bash
 npx expo start
 ```
 
-Escaneie o QR code no Expo Go ou use `a` / `i` para Android / iOS no emulador.
+Crie um `.env` baseado no `.env.example` com as URLs da API.
 
-### Variáveis de ambiente
+## Variáveis de ambiente
 
-| Variável | Descrição |
-|----------|-----------|
-| `EXPO_PUBLIC_API_BASE_URL` | Base da API principal (Spring), ex.: `http://host:8080/api` |
-| `EXPO_PUBLIC_APEX_BASE_URL` | Base da coleção REST dos cuidados no APEX (ORDS ou proxy), sem barra final opcional |
+```env
+EXPO_PUBLIC_API_BASE_URL=https://plantcare-api.azurewebsites.net/api
+EXPO_PUBLIC_APEX_BASE_URL=https://g8e46678d441c4b-plantcare.adb.sa-saopaulo-1.oraclecloudapps.com/ords/admin/plantcare
+EXPO_PUBLIC_COMMIT_HASH=<hash_do_commit>
+```
 
-O valor padrão no código aponta para o host de desenvolvimento do grupo; **o módulo APEX deve expor GET/POST/PUT/DELETE** compatíveis com o serviço em `services/apexCuidadosService.ts` (corpo JSON com `planta_id`, `tipo_cuidado`, `observacao` — ajustável conforme o contrato real do ORDS).
+## Download do Aplicativo
 
-## Vídeo de apresentação (Sprint 3)
+📱 [Baixar APK via Firebase App Distribution](<https://appdistribution.firebase.google.com/testerapps/1:1069984391798:android:e1b990e7553f8eef97f557/releases/40jmk6o44b32o?utm_source=firebase-console>)
 
-**Substitua o link abaixo pelo vídeo publicado no YouTube** (máx. 5 minutos, com narração e app em execução real):
+## Vídeo de Apresentação
 
-- [Vídeo de apresentação — PlantCare Sprint 3](https://youtu.be/KRxiz1VTA80)
-
-No vídeo deve aparecer: navegação entre telas, login, chamadas à API, uso da funcionalidade APEX e comportamento real do aplicativo.
-
-## Organização do código
-
-- `app/` — telas e layouts (Expo Router), sem chamadas HTTP diretas
-- `components/` — UI reutilizável
-- `hooks/` — hooks do TanStack Query e reutilização de lógica de dados
-- `services/` — regras de chamada e mapeamento das APIs
-- `api/` — instâncias Axios (cliente principal e cliente APEX)
-- `context/` — tema claro/escuro
-- `providers/` — `QueryClient` e composição de providers
-- `types/` — tipos TypeScript compartilhados
-- `utils/offlineCache.ts` / `networkErrors.ts` — persistência local e detecção de falhas de rede
+🎬 [Assistir no YouTube](<https://youtu.be/CL6F1k3NWEc>)
