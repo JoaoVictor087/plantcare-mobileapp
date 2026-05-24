@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 import { AppProviders } from '../providers/AppProviders';
+import { solicitarPermissaoNotificacao } from '../services/notificationService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -14,6 +15,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded || error) {
       SplashScreen.hideAsync();
+
+      solicitarPermissaoNotificacao();
     }
   }, [loaded, error]);
 

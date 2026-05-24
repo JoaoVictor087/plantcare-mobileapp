@@ -64,3 +64,19 @@ export async function notificacaoImediata(
 export async function cancelarTodasNotificacoes(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
+
+export async function notificarSaudeBaixa(
+  plantaId: number,
+  plantaNome: string,
+  score: number
+): Promise<void> {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '⚠️ Planta precisando de cuidados!',
+      body: `"${plantaNome}" está com saúde em ${score}/100. Verifique agora!`,
+      data: { plantaId },
+      sound: true,
+    },
+    trigger: null,
+  });
+}
