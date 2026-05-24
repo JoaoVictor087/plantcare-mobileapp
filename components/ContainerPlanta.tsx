@@ -5,15 +5,16 @@ import {
   StyleSheet,
   Image,
   Pressable,
-  ActivityIndicator,  
+  ActivityIndicator,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { layout } from '../constants/themePalettes';
 import type { Planta } from '../types/Planta';
 import { useTheme } from '../context/ThemeContext';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useDiagnosticoQuery } from '../hooks/useDiagnostico';
+import { useSaudometroQuery } from '../hooks/useSaudometro';
 
 interface ContainerPlantaProps {
   planta: Planta;
@@ -24,7 +25,13 @@ interface ContainerPlantaProps {
 const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
   const { colors } = useTheme();
   const { data: diagnostico, isLoading: loadingDiag } = useDiagnosticoQuery(planta.id);
-  console.log('PLANTA ID:', planta.id, 'LOADING:', loadingDiag, 'DIAG:', diagnostico);
+  const { data: saude } = useSaudometroQuery(planta.id);
+
+  const corScore = (score: number) => {
+    if (score >= 70) return '#4caf50';
+    if (score >= 40) return '#ff9800';
+    return '#f44336';
+  };
 
   const content = (
     <View
@@ -42,6 +49,8 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
           {planta.temperatura}ºC
         </Text>
         <Text style={[styles.linha, { color: colors.primary }]}>{planta.status}</Text>
+
+        {/* diagnóstico IA — sem alteração */}
         <View style={styles.diagArea}>
           {loadingDiag ? (
             <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
@@ -57,6 +66,32 @@ const ContainerPlanta = ({ planta, onPress, style }: ContainerPlantaProps) => {
             </View>
           ) : null}
         </View>
+
+        {saude && (
+          <View style={styles.saudometroArea}>
+            <View style={styles.saudometroHeader}>
+              <MaterialIcons name="favorite" size={12} color={corScore(saude.score_saude)} />
+              <Text style={[styles.saudometroLabel, { color: colors.textSecondary }]}>
+                Saudômetro
+              </Text>
+              <Text style={[styles.saudometroScore, { color: corScore(saude.score_saude) }]}>
+                {saude.score_saude}
+              </Text>
+            </View>
+            <View style={[styles.saudometroBarBg, { backgroundColor: colors.border }]}>
+              <View
+                style={[
+                  styles.saudometroBarFill,
+                  {
+                    width: `${saude.score_saude}%` as any,
+                    backgroundColor: corScore(saude.score_saude),
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        )}
+
       </View>
       <Image
         style={styles.image}
@@ -136,6 +171,34 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     flex: 1,
     fontStyle: 'italic',
+  },
+  saudometroArea: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    marginTop: 4,
+  },
+  saudometroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  saudometroLabel: {
+    fontSize: 10,
+    flex: 1,
+  },
+  saudometroScore: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  saudometroBarBg: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  saudometroBarFill: {
+    height: 6,
+    borderRadius: 3,
   },
 });
 

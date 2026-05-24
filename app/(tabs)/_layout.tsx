@@ -59,15 +59,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="cuidados-apex"
-          options={{
-            title: 'Cuidados APEX',
-            tabBarIcon: ({ color }) => (
-              <MaterialIcons name="local-drink" size={28} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="options"
           options={{
             title: 'Configurações',
